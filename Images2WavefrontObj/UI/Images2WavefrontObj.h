@@ -1,9 +1,13 @@
 #pragma once
 
-#include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QMenuBar>
+
+class QWidget;
+class QPushButton;
+class QListWidget;
+class QPushButton;
+class QMenuBar;
+class QStatusBar;
 
 class Images2WavefrontObj : public QMainWindow
 {
@@ -18,7 +22,9 @@ public:
 
 private:
     QWidget* m_centralwidget;
-    QWidget* m_widget;
+    QWidget* m_imageWidget;
+    QPushButton* m_loadImagesButton;
+    QListWidget* m_listImagesWidget;
     QPushButton* m_quitButton;
     QMenuBar* m_menubar;
     QStatusBar* m_statusbar;
