@@ -39,11 +39,24 @@
     <widget class="QListWidget" name="listImagesWidget">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>130</x>
        <y>30</y>
        <width>256</width>
        <height>192</height>
       </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="deleteImageButton">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>30</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Delete Image</string>
      </property>
     </widget>
    </widget>

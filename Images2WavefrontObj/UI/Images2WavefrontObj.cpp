@@ -33,7 +33,10 @@ void Images2WavefrontObj::setupUi()
     m_loadImagesButton->setGeometry(QRect(40, 30, 75, 23));
     m_listImagesWidget = new QListWidget(m_imageWidget);
     m_listImagesWidget->setObjectName(QString::fromUtf8("listImagesWidget"));
-    m_listImagesWidget->setGeometry(QRect(160, 30, 256, 192));
+    m_listImagesWidget->setGeometry(QRect(130, 30, 256, 192));
+    m_deleteImageButton = new QPushButton(m_imageWidget);
+    m_deleteImageButton->setObjectName(QStringLiteral("deleteImageButton"));
+    m_deleteImageButton->setGeometry(QRect(400, 30, 75, 23));
     m_quitButton = new QPushButton(m_centralwidget);
     m_quitButton->setObjectName(QString::fromUtf8("quitButton"));
     m_quitButton->setGeometry(QRect(20, 620, 75, 23));
@@ -49,6 +52,7 @@ void Images2WavefrontObj::setupUi()
     retranslateUi();
 
     QObject::connect(m_loadImagesButton, SIGNAL(pressed()), this, SLOT(loadImageButton_clicked()));
+    QObject::connect(m_deleteImageButton, SIGNAL(pressed()), this, SLOT(deleteImageButton_clicked()));
     QObject::connect(m_quitButton, SIGNAL(pressed()), this, SLOT(close()));
 }
 
@@ -56,10 +60,21 @@ void Images2WavefrontObj::retranslateUi()
 {
     this->setWindowTitle(QApplication::translate("MainWindow", "Images2WavefrontObj", 0));
     m_loadImagesButton->setText(QApplication::translate("MainWindow", "Load Images", 0));
+    m_deleteImageButton->setText(QApplication::translate("MainWindow", "Delete Image", 0));
     m_quitButton->setText(QApplication::translate("MainWindow", "Quit", 0));
 }
 
 void Images2WavefrontObj::loadImageButton_clicked()
 {
     QStringList openFileNames = QFileDialog::getOpenFileNames(this, "Images", "", "Images Files (*.png *.bmp *.jpg *.raw)");
+    m_listImagesWidget->addItems(openFileNames);
+}
+
+void Images2WavefrontObj::deleteImageButton_clicked()
+{
+    QList<QListWidgetItem*> items = m_listImagesWidget->selectedItems();
+    for(QListWidgetItem* item : items)
+    {
+        delete m_listImagesWidget->takeItem(m_listImagesWidget->row(item));
+    }
 }

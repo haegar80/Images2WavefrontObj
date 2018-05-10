@@ -22,12 +22,14 @@ public:
 
 public slots:
     void loadImageButton_clicked();
+    void deleteImageButton_clicked();
 
 private:
     QWidget* m_centralwidget;
     QWidget* m_imageWidget;
     QPushButton* m_loadImagesButton;
     QListWidget* m_listImagesWidget;
+    QPushButton* m_deleteImageButton;
     QPushButton* m_quitButton;
     QMenuBar* m_menubar;
     QStatusBar* m_statusbar;
