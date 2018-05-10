@@ -11,7 +11,7 @@ class QStatusBar;
 
 class Images2WavefrontObj : public QMainWindow
 {
-    Q_OBJECT
+   Q_OBJECT
 
 public:
     Images2WavefrontObj();
@@ -19,6 +19,9 @@ public:
 
     void setupUi();
     void retranslateUi();
+
+public slots:
+    void loadImageButton_clicked();
 
 private:
     QWidget* m_centralwidget;

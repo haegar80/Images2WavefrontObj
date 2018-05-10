@@ -1,10 +1,12 @@
 #include "Images2WavefrontObj.h"
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QFileDialog>
 
 Images2WavefrontObj::Images2WavefrontObj()
 {
@@ -16,11 +18,11 @@ void Images2WavefrontObj::setupUi()
     if (this->objectName().isEmpty()) {
         this->setObjectName(QString::fromUtf8("MainWindow"));
     }
-    this->resize(1024, 1024);
+    
+    QRect screenGeometry = QApplication::desktop()->availableGeometry();
+    this->resize(screenGeometry.width(), screenGeometry.height());
+    this->setMinimumSize(QSize(200, 200));
 
-    if (this->objectName().isEmpty())
-        this->setObjectName(QString::fromUtf8("MainWindow"));
-    this->resize(1024, 1024);
     m_centralwidget = new QWidget(this);
     m_centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
     m_imageWidget = new QWidget(m_centralwidget);
@@ -46,9 +48,8 @@ void Images2WavefrontObj::setupUi()
 
     retranslateUi();
 
+    QObject::connect(m_loadImagesButton, SIGNAL(pressed()), this, SLOT(loadImageButton_clicked()));
     QObject::connect(m_quitButton, SIGNAL(pressed()), this, SLOT(close()));
-
-    QMetaObject::connectSlotsByName(this);
 }
 
 void Images2WavefrontObj::retranslateUi()
@@ -56,4 +57,9 @@ void Images2WavefrontObj::retranslateUi()
     this->setWindowTitle(QApplication::translate("MainWindow", "Images2WavefrontObj", 0));
     m_loadImagesButton->setText(QApplication::translate("MainWindow", "Load Images", 0));
     m_quitButton->setText(QApplication::translate("MainWindow", "Quit", 0));
+}
+
+void Images2WavefrontObj::loadImageButton_clicked()
+{
+    QStringList openFileNames = QFileDialog::getOpenFileNames(this, "Images", "", "Images Files (*.png *.bmp *.jpg *.raw)");
 }
