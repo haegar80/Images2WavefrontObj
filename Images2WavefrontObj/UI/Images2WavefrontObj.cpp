@@ -5,9 +5,12 @@
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QScrollArea>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QImageReader>
 
 Images2WavefrontObj::Images2WavefrontObj()
 {
@@ -40,9 +43,13 @@ void Images2WavefrontObj::setupUi()
     m_deleteImageButton->setGeometry(QRect(410, 30, 75, 23));
     m_imageLabel = new QLabel(m_imageWidget);
     m_imageLabel->setObjectName(QStringLiteral("imageLabel"));
-    m_imageLabel->setGeometry(QRect(50, 180, screenGeometry.width() - 160, screenGeometry.height() - 280));
+    m_imageLabel->setGeometry(QRect(50, 180, screenGeometry.width() + 160, screenGeometry.height() - 280));
     m_imageLabel->setFrameShape(QFrame::Box);
-    m_imageLabel->setScaledContents(true);
+    m_imageLabel->setScaledContents(false);
+    m_imageLabelScrollArea = new QScrollArea(m_imageWidget);
+    m_imageLabelScrollArea->setGeometry(QRect(50, 180, screenGeometry.width() - 160, screenGeometry.height() - 280));
+    m_imageLabelScrollArea->setWidget(m_imageLabel);
+    m_imageLabelScrollArea->setBackgroundRole(QPalette::Dark);
     m_quitButton = new QPushButton(m_centralwidget);
     m_quitButton->setObjectName(QString::fromUtf8("quitButton"));
     m_quitButton->setGeometry(QRect(20, screenGeometry.height() - 73, 75, 23));
@@ -75,6 +82,20 @@ void Images2WavefrontObj::loadImageButton_clicked()
 {
     QStringList openFileNames = QFileDialog::getOpenFileNames(this, "Images", "", "Images Files (*.png *.bmp *.jpg *.raw)");
     m_listImagesWidget->addItems(openFileNames);
+
+    QImageReader imageReader(openFileNames.at(0));
+    imageReader.setAutoTransform(true);
+    const QImage newImage = imageReader.read();
+    if (newImage.isNull()) {
+        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+            tr("Cannot load %1: %2")
+            .arg(QDir::toNativeSeparators(openFileNames.at(0)), imageReader.errorString()));
+    }
+    else
+    {
+        m_imageLabel->setGeometry(QRect(50, 180, newImage.width(), newImage.height()));
+        m_imageLabel->setPixmap(QPixmap::fromImage(newImage));
+    }
 }
 
 void Images2WavefrontObj::deleteImageButton_clicked()
