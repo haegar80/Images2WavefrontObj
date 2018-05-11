@@ -6,6 +6,7 @@ class QWidget;
 class QPushButton;
 class QListWidget;
 class QPushButton;
+class QLabel;
 class QMenuBar;
 class QStatusBar;
 
@@ -30,6 +31,7 @@ private:
     QPushButton* m_loadImagesButton;
     QListWidget* m_listImagesWidget;
     QPushButton* m_deleteImageButton;
+    QLabel* m_imageLabel;
     QPushButton* m_quitButton;
     QMenuBar* m_menubar;
     QStatusBar* m_statusbar;

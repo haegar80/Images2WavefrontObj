@@ -4,6 +4,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QFileDialog>
@@ -27,19 +28,24 @@ void Images2WavefrontObj::setupUi()
     m_centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
     m_imageWidget = new QWidget(m_centralwidget);
     m_imageWidget->setObjectName(QString::fromUtf8("imageWidget"));
-    m_imageWidget->setGeometry(QRect(60, 50, 581, 411));
+    m_imageWidget->setGeometry(QRect(60, 50, screenGeometry.width() - 80, screenGeometry.height() - 100));
     m_loadImagesButton = new QPushButton(m_imageWidget);
     m_loadImagesButton->setObjectName(QString::fromUtf8("loadImagesButton"));
-    m_loadImagesButton->setGeometry(QRect(40, 30, 75, 23));
+    m_loadImagesButton->setGeometry(QRect(50, 30, 75, 23));
     m_listImagesWidget = new QListWidget(m_imageWidget);
     m_listImagesWidget->setObjectName(QString::fromUtf8("listImagesWidget"));
-    m_listImagesWidget->setGeometry(QRect(130, 30, 256, 192));
+    m_listImagesWidget->setGeometry(QRect(140, 30, 256, 121));
     m_deleteImageButton = new QPushButton(m_imageWidget);
     m_deleteImageButton->setObjectName(QStringLiteral("deleteImageButton"));
-    m_deleteImageButton->setGeometry(QRect(400, 30, 75, 23));
+    m_deleteImageButton->setGeometry(QRect(410, 30, 75, 23));
+    m_imageLabel = new QLabel(m_imageWidget);
+    m_imageLabel->setObjectName(QStringLiteral("imageLabel"));
+    m_imageLabel->setGeometry(QRect(50, 180, screenGeometry.width() - 160, screenGeometry.height() - 280));
+    m_imageLabel->setFrameShape(QFrame::Box);
+    m_imageLabel->setScaledContents(true);
     m_quitButton = new QPushButton(m_centralwidget);
     m_quitButton->setObjectName(QString::fromUtf8("quitButton"));
-    m_quitButton->setGeometry(QRect(20, 620, 75, 23));
+    m_quitButton->setGeometry(QRect(20, screenGeometry.height() - 73, 75, 23));
     this->setCentralWidget(m_centralwidget);
     m_menubar = new QMenuBar(this);
     m_menubar->setObjectName(QString::fromUtf8("menubar"));
@@ -61,6 +67,7 @@ void Images2WavefrontObj::retranslateUi()
     this->setWindowTitle(QApplication::translate("MainWindow", "Images2WavefrontObj", 0));
     m_loadImagesButton->setText(QApplication::translate("MainWindow", "Load Images", 0));
     m_deleteImageButton->setText(QApplication::translate("MainWindow", "Delete Image", 0));
+    m_imageLabel->setText(QString());
     m_quitButton->setText(QApplication::translate("MainWindow", "Quit", 0));
 }
 
