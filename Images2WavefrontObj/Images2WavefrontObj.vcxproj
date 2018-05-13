@@ -129,6 +129,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ImageProcessing\ImageCombiner.cpp" />
+    <ClCompile Include="ImageProcessing\ImageProcessingFacade.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UI\Images2WavefrontObj.cpp" />
   </ItemGroup>
@@ -161,6 +163,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_ImageWidget.h" />
+    <ClInclude Include="ImageProcessing\ImageCombiner.h" />
+    <ClInclude Include="ImageProcessing\ImageProcessingFacade.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -11,7 +11,6 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
-#include <QImageReader>
 
 Images2WavefrontObj::Images2WavefrontObj()
 {
@@ -39,6 +38,7 @@ void Images2WavefrontObj::setupUi()
     m_listImagesWidget = new QListWidget(m_imageWidget);
     m_listImagesWidget->setObjectName(QString::fromUtf8("listImagesWidget"));
     m_listImagesWidget->setGeometry(QRect(140, 30, 271, 131));
+    m_listImagesWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_deleteImageButton = new QPushButton(m_imageWidget);
     m_deleteImageButton->setObjectName(QStringLiteral("deleteImageButton"));
     m_deleteImageButton->setGeometry(QRect(50, 60, 75, 23));
@@ -120,29 +120,31 @@ void Images2WavefrontObj::loadSelectedImagesButton_clicked()
 void Images2WavefrontObj::LoadImage()
 {
     QList<QListWidgetItem*> items = m_listImagesWidget->selectedItems();
-    QString item = items.at(0)->text();
+    QStringList itemsStringList;
+    for (QListWidgetItem* item : items)
+    {
+        itemsStringList.push_back(item->text());
+    }
 
-    QImageReader imageReader(item);
-    imageReader.setAutoTransform(true);
-    const QImage newImage = imageReader.read();
-    if (newImage.isNull()) {
+    QImage image = m_imageProcessingFacade.CombineImages(itemsStringList);
+
+    if (image.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-            tr("Cannot load %1: %2")
-            .arg(QDir::toNativeSeparators(item), imageReader.errorString()));
+            tr("Cannot load the selected images"));
     }
     else
     {
         if (m_isScaleImagesChecked) {
-            double ratio = static_cast<double>(newImage.width()) / static_cast<double>(newImage.height());
+            double ratio = static_cast<double>(image.width()) / static_cast<double>(image.height());
             m_imageLabel->setGeometry(QRect(50, 220, ratio * m_maxScaledImageHeight, m_maxScaledImageHeight));
             m_imageLabelScrollArea->setGeometry(QRect(50, 220, ratio * m_maxScaledImageHeight, m_maxScaledImageHeight));
         }
         else {
             QRect screenGeometry = QApplication::desktop()->availableGeometry();
-            m_imageLabel->setGeometry(QRect(50, 220, newImage.width(), newImage.height()));
+            m_imageLabel->setGeometry(QRect(50, 220, image.width(), image.height()));
             m_imageLabelScrollArea->setGeometry(QRect(50, 220, screenGeometry.width() - 160, m_maxScaledImageHeight));
         }
         m_imageLabel->setScaledContents(m_isScaleImagesChecked);
-        m_imageLabel->setPixmap(QPixmap::fromImage(newImage));
+        m_imageLabel->setPixmap(QPixmap::fromImage(image));
     }
 }

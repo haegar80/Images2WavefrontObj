@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ImageProcessing/ImageProcessingFacade.h"
 #include <QtWidgets/QMainWindow>
 
 class QWidget;
@@ -43,6 +44,7 @@ private:
     QMenuBar* m_menubar;
     QStatusBar* m_statusbar;
 
+    ImageProcessingFacade m_imageProcessingFacade;
     bool m_isScaleImagesChecked{ true };
     int m_maxScaledImageHeight{ 0 };
 
