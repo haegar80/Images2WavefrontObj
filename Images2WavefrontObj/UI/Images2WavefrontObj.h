@@ -8,6 +8,7 @@ class QListWidget;
 class QPushButton;
 class QLabel;
 class QScrollArea;
+class QCheckBox;
 class QMenuBar;
 class QStatusBar;
 
@@ -23,18 +24,27 @@ public:
     void retranslateUi();
 
 public slots:
-    void loadImageButton_clicked();
+    void addImagesButton_clicked();
     void deleteImageButton_clicked();
+    void scaleImagesCheckBox_clicked(bool p_isChecked);
+    void loadSelectedImagesButton_clicked();
 
 private:
     QWidget* m_centralwidget;
     QWidget* m_imageWidget;
-    QPushButton* m_loadImagesButton;
+    QPushButton* m_addImagesButton;
     QListWidget* m_listImagesWidget;
     QPushButton* m_deleteImageButton;
     QLabel* m_imageLabel;
     QScrollArea* m_imageLabelScrollArea;
+    QCheckBox* m_checkBoxScaleImages;
+    QPushButton* m_loadSelectedImagesButton;
     QPushButton* m_quitButton;
     QMenuBar* m_menubar;
     QStatusBar* m_statusbar;
+
+    bool m_isScaleImagesChecked{ true };
+    int m_maxScaledImageHeight{ 0 };
+
+    void LoadImage();
 };
