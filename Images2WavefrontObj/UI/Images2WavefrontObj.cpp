@@ -130,7 +130,7 @@ void Images2WavefrontObj::LoadImage()
 
     if (image.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-            tr("Cannot load the selected images"));
+            tr("Cannot load or combine the selected images"));
     }
     else
     {
