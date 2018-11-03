@@ -13,6 +13,7 @@ class QCheckBox;
 class QMenuBar;
 class QStatusBar;
 
+/// author: Copyright by Marcel Fuchs
 class Images2WavefrontObj : public QMainWindow
 {
    Q_OBJECT

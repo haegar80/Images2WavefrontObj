@@ -5,6 +5,7 @@
 
 class QStringList;
 
+/// author: Copyright by Marcel Fuchs
 class ImageProcessingFacade
 {
 public:

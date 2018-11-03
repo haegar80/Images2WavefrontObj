@@ -124,6 +124,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImageProcessing\EdgeDetector.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_Images2WavefrontObj.cpp" />
     <ClCompile Include="GeneratedFiles\Release\moc_Images2WavefrontObj.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -162,6 +163,7 @@
     <None Include="UI\Imgages2WavefrontObj.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImageProcessing\EdgeDetector.h" />
     <ClInclude Include="GeneratedFiles\ui_ImageWidget.h" />
     <ClInclude Include="ImageProcessing\ImageCombiner.h" />
     <ClInclude Include="ImageProcessing\ImageProcessingFacade.h" />

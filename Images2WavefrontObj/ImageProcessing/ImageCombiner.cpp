@@ -62,13 +62,6 @@ bool ImageCombiner::CombineTwoImages(QImage& p_finalImage, const QImage& p_exten
 {
     bool successful = true;
 
-    QSize finalImageSize = QSize(p_finalImage.width(), p_finalImage.height());
-    QImage gradientFinalImage(finalImageSize, QImage::Format_RGB32);
-    GetGradientImage(p_finalImage, gradientFinalImage);
-    
-    QSize extensionImageSize = QSize(p_extensionImage.width(), p_extensionImage.height());
-    QImage gradientExtensionImage(extensionImageSize, QImage::Format_RGB32);
-    GetGradientImage(p_extensionImage, gradientExtensionImage);
     bool overlapFound = FindOverlap(p_finalImage, p_extensionImage);
     int correctOverlapIndex = FindCorrectOneOfOverlapCandidates(p_finalImage, p_extensionImage);
     if (OverlapNotFound == correctOverlapIndex)
@@ -77,59 +70,6 @@ bool ImageCombiner::CombineTwoImages(QImage& p_finalImage, const QImage& p_exten
     }
 
     return successful;
-}
-
-void ImageCombiner::GetGradientImage(const QImage& p_Image, QImage& p_gradientImage)
-{
-    int observeMatrix[KernelSize][KernelSize];
-    for (int x = KernelNeighbour; x < (p_Image.width() - KernelNeighbour - 1); x++)
-    {
-        for (int y = KernelNeighbour; y < (p_Image.height() - KernelNeighbour - 1); y++)
-        {
-            for (int kernelX = -KernelNeighbour; kernelX <= KernelNeighbour; kernelX++)
-            {
-                for (int kernelY = -KernelNeighbour; kernelY <= KernelNeighbour; kernelY++)
-                {
-                    int indexX = kernelX + KernelNeighbour;
-                    int indexY = kernelY + KernelNeighbour;
-                    observeMatrix[indexX][indexY] = qGray(p_Image.pixel(x + kernelX, y + kernelY));
-                }
-            }
-            UpdateGradientImage(p_gradientImage, observeMatrix, x, y);
-        }
-    }
-}
-
-void ImageCombiner::UpdateGradientImage(QImage& p_gradientImage, int p_ObserveMatrix[KernelSize][KernelSize], int p_ImageX, int p_ImageY)
-{
-    int convoluteX = ConvoluteMatrices(p_ObserveMatrix, SobelKernelMatrixX);
-    int convoluteY = ConvoluteMatrices(p_ObserveMatrix, SobelKernelMatrixY);
-    
-    double sum = sqrt(pow(static_cast<double>(convoluteX), 2) + pow(static_cast<double>(convoluteY), 2));
-
-    p_gradientImage.setPixel(p_ImageX, p_ImageY, qRgb(sum, sum, sum));
-}
-
-int ImageCombiner::ConvoluteMatrices(const int p_ObserveMatrix[KernelSize][KernelSize], const int p_KernelMatrix[KernelSize][KernelSize])
-{
-    int sum = 0;
-    for (int x = 0; x < KernelSize; x++)
-    {
-        for (int y = 0; y < KernelSize; y++)
-        {
-            sum += p_KernelMatrix[KernelSize - x - 1][KernelSize - y - 1] * p_ObserveMatrix[x][y];
-        }
-    }
-
-    if (sum > 255)
-    {
-        sum = 255;
-    }
-    else if (sum < 100)
-    {
-        sum = 0;
-    }
-    return sum;
 }
 
 void ImageCombiner::AnalyzeTop(const QImage& p_finalImage, const QImage& p_extensionImage)
