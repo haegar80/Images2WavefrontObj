@@ -110,6 +110,22 @@
       <string>Load Selected Images</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="generate3dModelButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>430</x>
+       <y>180</y>
+       <width>111</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Generate 3d model</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="quitButton">
     <property name="geometry">

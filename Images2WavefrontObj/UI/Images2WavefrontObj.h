@@ -16,7 +16,7 @@ class QStatusBar;
 /// author: Copyright by Marcel Fuchs
 class Images2WavefrontObj : public QMainWindow
 {
-   Q_OBJECT
+    Q_OBJECT
 
 public:
     Images2WavefrontObj();
@@ -25,14 +25,15 @@ public:
     void setupUi();
     void retranslateUi();
 
-public slots:
+    public slots:
     void addImagesButton_clicked();
     void deleteImageButton_clicked();
     void scaleImagesCheckBox_clicked(bool p_isChecked);
     void loadSelectedImagesButton_clicked();
+    void generate3dModelButton_clicked();
 
 private:
-    QWidget* m_centralwidget;
+    QWidget * m_centralwidget;
     QWidget* m_imageWidget;
     QPushButton* m_addImagesButton;
     QListWidget* m_listImagesWidget;
@@ -41,13 +42,16 @@ private:
     QScrollArea* m_imageLabelScrollArea;
     QCheckBox* m_checkBoxScaleImages;
     QPushButton* m_loadSelectedImagesButton;
+    QPushButton* m_generate3dModelButton;
     QPushButton* m_quitButton;
     QMenuBar* m_menubar;
     QStatusBar* m_statusbar;
 
-    ImageProcessingFacade m_imageProcessingFacade;
+    QImage m_loadedImage{};
+    ImageProcessingFacade m_imageProcessingFacade{};
     bool m_isScaleImagesChecked{ true };
     int m_maxScaledImageHeight{ 0 };
 
     void LoadImage();
+    void Generate3dModel();
 };

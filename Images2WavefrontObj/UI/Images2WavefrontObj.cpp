@@ -59,6 +59,10 @@ void Images2WavefrontObj::setupUi()
     m_loadSelectedImagesButton = new QPushButton(m_imageWidget);
     m_loadSelectedImagesButton->setObjectName(QStringLiteral("loadSelectedImagesButton"));
     m_loadSelectedImagesButton->setGeometry(QRect(140, 180, 121, 23));
+    m_generate3dModelButton = new QPushButton(m_imageWidget);
+    m_generate3dModelButton->setObjectName(QStringLiteral("generate3dModelButton"));
+    m_generate3dModelButton->setEnabled(false);
+    m_generate3dModelButton->setGeometry(QRect(430, 180, 111, 23));
     m_quitButton = new QPushButton(m_centralwidget);
     m_quitButton->setObjectName(QString::fromUtf8("quitButton"));
     m_quitButton->setGeometry(QRect(20, screenGeometry.height() - 73, 75, 23));
@@ -77,6 +81,7 @@ void Images2WavefrontObj::setupUi()
     QObject::connect(m_deleteImageButton, SIGNAL(pressed()), this, SLOT(deleteImageButton_clicked()));
     QObject::connect(m_checkBoxScaleImages, SIGNAL(clicked(bool)), this, SLOT(scaleImagesCheckBox_clicked(bool)));
     QObject::connect(m_loadSelectedImagesButton, SIGNAL(pressed()), this, SLOT(loadSelectedImagesButton_clicked()));
+    QObject::connect(m_generate3dModelButton, SIGNAL(pressed()), this, SLOT(generate3dModelButton_clicked()));
     QObject::connect(m_quitButton, SIGNAL(pressed()), this, SLOT(close()));
 }
 
@@ -88,6 +93,7 @@ void Images2WavefrontObj::retranslateUi()
     m_imageLabel->setText(QString());
     m_checkBoxScaleImages->setText(QApplication::translate("MainWindow", "Scale Displayed Images", nullptr));
     m_loadSelectedImagesButton->setText(QApplication::translate("MainWindow", "Load Selected Images", nullptr));
+    m_generate3dModelButton->setText(QApplication::translate("MainWindow", "Generate 3d model", nullptr));
     m_quitButton->setText(QApplication::translate("MainWindow", "Quit", 0));
 }
 
@@ -115,6 +121,11 @@ void Images2WavefrontObj::scaleImagesCheckBox_clicked(bool p_isChecked)
 void Images2WavefrontObj::loadSelectedImagesButton_clicked()
 {
     LoadImage();
+}
+
+void Images2WavefrontObj::generate3dModelButton_clicked()
+{
+    Generate3dModel();
 }
 
 void Images2WavefrontObj::LoadImage()
@@ -145,6 +156,22 @@ void Images2WavefrontObj::LoadImage()
             m_imageLabelScrollArea->setGeometry(QRect(50, 220, screenGeometry.width() - 160, m_maxScaledImageHeight));
         }
         m_imageLabel->setScaledContents(m_isScaleImagesChecked);
+        m_imageLabel->setPixmap(QPixmap::fromImage(image));
+
+        m_loadedImage = image;
+        m_generate3dModelButton->setEnabled(true);
+    }
+}
+
+void Images2WavefrontObj::Generate3dModel()
+{
+    if (m_loadedImage.isNull()) {
+        QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
+            tr("Cannot load the selected images"));
+    }
+    else
+    {
+        QImage image = m_imageProcessingFacade.DetectEdges(m_loadedImage);
         m_imageLabel->setPixmap(QPixmap::fromImage(image));
     }
 }

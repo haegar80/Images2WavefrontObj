@@ -15,7 +15,6 @@ QImage EdgeDetector::DetectEdges(const QImage& p_image)
 
 void EdgeDetector::GetGradientImage(const QImage& p_image, QImage& p_gradientImage)
 {
-
     int observeMatrix[KernelSize][KernelSize];
     for (int x = KernelNeighbour; x < (p_image.width() - KernelNeighbour - 1); x++)
     {
