@@ -199,6 +199,10 @@ bool ImageCombiner::FindOverlapPixels(const QImage& p_image, const int p_expecte
                 {
                     overlapCounter = 0;
                 }
+                else
+                {
+                    overlapCounter++;
+                }
             }
         }
         x++;
@@ -216,10 +220,13 @@ bool ImageCombiner::FindOverlapPixels(const QImage& p_image, const int p_expecte
             {
                 x -= (overlapCounter % OverlapPixels);
                 lastSuccessfulOverlapX = x;
-                overlapCounter += (OverlapPixels - (overlapCounter % OverlapPixels));
-                
+                overlapCounter += (OverlapPixels - (overlapCounter % OverlapPixels));     
             }
-            x = 0;
+            else
+            {
+                x = ImageBorderPixels;
+                overlapCounter = 0;
+            }
             y++;
         }
     } while (overlapCounter < (OverlapPixels * OverlapPixels) && (y < MaxImageY));
@@ -264,7 +271,7 @@ int ImageCombiner::FindCorrectOneOfOverlapCandidates(const QImage& p_finalImage,
 int ImageCombiner::FindCorrectOneOfOverlapCandidatesX(const QImage& p_finalImage, const QImage& p_extensionImage)
 {
     int correctIndex = OverlapNotFound;
-    bool overlapSuccessful = false;
+    bool overlapSuccessful = true;
 
     for (int i = 0; i < m_overlapXStartPixelsFinalImage.size(); i++)
     {

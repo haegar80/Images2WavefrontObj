@@ -134,6 +134,11 @@
     <ClCompile Include="ImageProcessing\ImageProcessingFacade.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="UI\Images2WavefrontObj.cpp" />
+    <ClCompile Include="WavefrontObject\MaterialWriter.cpp" />
+    <ClCompile Include="WavefrontObject\WavefrontObjectWriter.cpp" />
+    <ClCompile Include="WavefrontObject\Material.cpp" />
+    <ClCompile Include="WavefrontObject\Mesh.cpp" />
+    <ClCompile Include="WavefrontObject\SubMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="UI\Images2WavefrontObj.h">
@@ -167,6 +172,11 @@
     <ClInclude Include="GeneratedFiles\ui_ImageWidget.h" />
     <ClInclude Include="ImageProcessing\ImageCombiner.h" />
     <ClInclude Include="ImageProcessing\ImageProcessingFacade.h" />
+    <ClInclude Include="WavefrontObject\MaterialWriter.h" />
+    <ClInclude Include="WavefrontObject\WavefrontObjectWriter.h" />
+    <ClInclude Include="WavefrontObject\Material.h" />
+    <ClInclude Include="WavefrontObject\Mesh.h" />
+    <ClInclude Include="WavefrontObject\SubMesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
