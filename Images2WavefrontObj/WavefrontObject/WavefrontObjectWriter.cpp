@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <QFileInfo>
+#include <QDir>
 
 WavefrontObjectWriter::WavefrontObjectWriter(const std::string& p_dirPath, const std::string& p_fileName)
 {
@@ -13,10 +15,21 @@ WavefrontObjectWriter::WavefrontObjectWriter(const std::string& p_dirPath, const
 void WavefrontObjectWriter::WriteWavefrontObject(const std::vector<Mesh*>& p_meshes, const std::vector<Material*>& p_materials)
 {
     std::ofstream objFile;
-    std::string filePath((m_currentDirPath + m_currentFileName + ".obj"));
-    objFile.open(filePath.c_str());
+
+    std::string fileNameTempString(m_currentFileName + ".obj");
+    QString currentFileName(fileNameTempString.c_str());
+
+    QDir currentDirPath(QString(m_currentDirPath.c_str()));
+    if (!currentDirPath.exists())
+    {
+        currentDirPath.mkpath(".");
+    }
+
+    QFileInfo file(currentDirPath, currentFileName);
+    QString filePath = file.absoluteFilePath();
+    objFile.open(filePath.toUtf8().constData());
     if (!objFile) {
-        std::cout << "File " << filePath.c_str() << " could not be opened!!" << std::endl;
+        std::cout << "File " << filePath.toUtf8().constData() << " could not be opened!!" << std::endl;
         return;
     }
 

@@ -16,7 +16,7 @@ public:
     Material(std::string p_name);
     virtual ~Material() = default;
 
-    std::string& getName() const
+    std::string getName() const
     {
         return m_name;
     }
@@ -92,7 +92,7 @@ public:
     }
 
 private:
-    std::string& m_name;
+    std::string m_name;
 
     MaterialRGBValue m_ambientColor{ 0.0f, 0.0f, 0.0f };
     MaterialRGBValue m_diffuseColor{ 0.0f, 0.0f, 0.0f };

@@ -30,7 +30,7 @@ public:
     void AddFace(Material* p_material);
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
 
-    std::string& getName() const
+    std::string getName() const
     {
         return m_name;
     }
@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    std::string& m_name;
+    std::string m_name;
     std::vector<ObjVertexCoords> m_tempVertices;
     std::vector<ObjVertexCoords> m_tempNormals;
     std::vector<ObjTextureCoords> m_tempTextures;

@@ -2,6 +2,8 @@
 
 #include "ImageCombiner.h"
 #include "EdgeDetector.h"
+#include "VertexFinder.h"
+#include "WavefrontObject\WavefrontObjectWriter.h"
 #include <QImage>
 
 class QStringList;
@@ -14,10 +16,13 @@ public:
     virtual ~ImageProcessingFacade() = default;
 
     QImage CombineImages(const QStringList& p_images);
-    QImage DetectEdges(const QImage& p_image);
+    QImage Generate3dModel(const QImage& p_image);
 
 private:
     ImageCombiner m_imageCombiner{};
     EdgeDetector m_edgeDetector{};
+    VertexFinder m_vertexFinder{};
+
+    WavefrontObjectWriter m_wavefrontObjectWriter{"Wavefront", "wavefront"};
 };
 

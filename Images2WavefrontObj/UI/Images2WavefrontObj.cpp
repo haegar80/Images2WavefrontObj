@@ -171,7 +171,7 @@ void Images2WavefrontObj::Generate3dModel()
     }
     else
     {
-        QImage image = m_imageProcessingFacade.DetectEdges(m_loadedImage);
+        QImage image = m_imageProcessingFacade.Generate3dModel(m_loadedImage);
         m_imageLabel->setPixmap(QPixmap::fromImage(image));
     }
 }
