@@ -8,8 +8,8 @@ VertexFinder::VertexFinder()
 
 Mesh* VertexFinder::FindVerticesFromGradientImage(const QImage& p_gradientImage)
 {
-    m_HighGradientRangesX.clear();
-    m_HighGradientRangesY.clear();
+    m_highGradientRangesX.clear();
+    m_highGradientRangesY.clear();
 
     for (int xIndex = ImageBorderPixels; xIndex < (p_gradientImage.width() - ImageBorderPixels); xIndex += 2)
     {
@@ -18,16 +18,14 @@ Mesh* VertexFinder::FindVerticesFromGradientImage(const QImage& p_gradientImage)
             int imagePixelGray = GetGrayPixel(p_gradientImage, xIndex, yIndex);
             if (imagePixelGray > 0)
             {
-                bool vertexAdded = ProcessEdge(p_gradientImage, xIndex, yIndex);
+                bool nextVertexFound = ProcessEdge(p_gradientImage, xIndex, yIndex);
 
-                if(vertexAdded)
+                if(nextVertexFound)
                 {
-                    xIndex = m_NextCheckingX;
+                    yIndex = m_nextCheckY;
                 }
             }
         }
-
-        m_NextCheckingX = xIndex;
     }
 
     return m_mesh.get();
@@ -40,10 +38,10 @@ bool VertexFinder::ProcessEdge(const QImage& p_gradientImage, int p_startX, int 
     int xEndIndex = GetHighGradientEndX(p_gradientImage, (p_startX + 1), p_startY);
     int yEndIndex = 0;
 
-    if (xEndIndex != p_startX)
+    if ((xEndIndex - p_startX) >= MinimumNumberOfPixels)
     {
         yEndIndex = GetHighGradientEndY(p_gradientImage, p_startX, (p_startY + 1));
-        if (yEndIndex != p_startY)
+        if ((yEndIndex - p_startY) >= MinimumNumberOfPixels)
         {
             nextVertexFound = true;
         }
@@ -64,9 +62,9 @@ int VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX
     for (int xIndex = p_nextX; xIndex < (p_gradientImage.width() - ImageBorderPixels); xIndex++)
     {
         int imagePixelGray = GetGrayPixel(p_gradientImage, xIndex, p_pixelY);
-        if (0 == imagePixelGray)
+        if (imagePixelGray > MinimumGradient)
         {
-            xEndIndex = xIndex - 1;
+            xEndIndex = xIndex;
             break;
         }
     }
@@ -81,9 +79,9 @@ int VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_pixel
     for (int yIndex = p_nextY; yIndex < (p_gradientImage.height() - ImageBorderPixels); yIndex++)
     {
         int imagePixelGray = GetGrayPixel(p_gradientImage, p_pixelX, yIndex);
-        if (0 == imagePixelGray)
+        if (imagePixelGray > MinimumGradient)
         {
-            yEndIndex = yIndex - 1;
+            yEndIndex = yIndex;
             break;
         }
     }
@@ -101,7 +99,7 @@ int VertexFinder::GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int 
 
 void VertexFinder::AddVertices(int p_startX, int p_endX, int p_startY, int p_endY)
 {
-    if (!IsVertexAlreadyAdded(p_startX, p_startY))
+    if (!IsVertexAlreadyAdded(p_startX, p_startY) && !IsVertexAlreadyAdded(p_endX, p_endY))
     {
         m_mesh->AddVertex(p_startX, p_startY, 0);
         m_mesh->AddVertex(p_endX, p_startY, 0);
@@ -115,9 +113,9 @@ void VertexFinder::AddVertices(int p_startX, int p_endX, int p_startY, int p_end
             m_mesh->AddFaceIndices(i);
         }
 
-        m_HighGradientRangesX.insert(std::make_pair(p_startX, p_endX));
-        m_HighGradientRangesY.insert(std::make_pair(p_startY, p_endY));
-        m_NextCheckingX = p_endX;
+        m_highGradientRangesX.insert(std::make_pair(p_startX, p_endX));
+        m_highGradientRangesY.insert(std::make_pair(p_startY, p_endY));
+        m_nextCheckY = p_endY;
     }
 }
 
@@ -126,22 +124,22 @@ bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY)
     bool vertexAlreadyAdded = false;
     bool xFound = false;
     bool yFound = false;
-    int tempNextCheckingX = 0;
+    int tempNextCheckY = 0;
 
-    for (std::pair<int, int> xPair : m_HighGradientRangesX)
+    for (std::pair<int, int> xPair : m_highGradientRangesX)
     {
         if (p_pixelX >= xPair.first && p_pixelX <= xPair.second)
         {
-            tempNextCheckingX = xPair.second + 1;
             xFound = true;
             break;
         }
     }
 
-    for (std::pair<int, int> yPair : m_HighGradientRangesY)
+    for (std::pair<int, int> yPair : m_highGradientRangesY)
     {
         if (p_pixelY > yPair.first && p_pixelY < yPair.second)
         {
+            tempNextCheckY = yPair.second + 1;
             yFound = true;
             break;
         }
@@ -149,7 +147,7 @@ bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY)
 
     if (xFound && yFound)
     {
-        m_NextCheckingX = tempNextCheckingX;
+        m_nextCheckY = tempNextCheckY;
         vertexAlreadyAdded = true;
     }
 

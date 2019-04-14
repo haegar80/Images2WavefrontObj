@@ -20,12 +20,14 @@ public:
 
 private:
     static constexpr int ImageBorderPixels = 1;
+    static constexpr int MinimumGradient = 10;
+    static constexpr int MinimumNumberOfPixels = 3;
 
     std::unique_ptr<Mesh> m_mesh;
     Material m_dummyMaterial{"default"};
-    int m_NextCheckingX{ 0 };
-    std::map<int, int> m_HighGradientRangesX{};
-    std::map<int, int> m_HighGradientRangesY{};
+    int m_nextCheckY{ 0 };
+    std::map<int, int> m_highGradientRangesX{};
+    std::map<int, int> m_highGradientRangesY{};
 
     bool ProcessEdge(const QImage& p_gradientImage, int p_startX, int p_startY);
     int GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_pixelY);
