@@ -24,7 +24,7 @@ private:
     static constexpr int MinimumNumberOfPixels = 3;
 
     std::unique_ptr<Mesh> m_mesh;
-    Material m_dummyMaterial{"default"};
+    Material m_dummyMaterial{"DummyMaterial"};
     int m_nextCheckY{ 0 };
     std::map<int, int> m_highGradientRangesX{};
     std::map<int, int> m_highGradientRangesY{};

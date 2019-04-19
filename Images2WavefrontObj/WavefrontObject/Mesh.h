@@ -58,7 +58,7 @@ private:
     std::vector<ObjVertexCoords> m_normals;
     std::vector<ObjTextureCoords> m_textures;
     std::vector<SubMesh*> m_submeshes;
-    unsigned int m_totalFaceIndices{ 0 };
+    unsigned int m_totalFaceIndices{ 1 }; // References to vertices/normals/textures start always with 1
     Material* m_lastUsedMaterial{ nullptr };
 
     void AddVertexFromFaceIndex(unsigned short p_vertexIndex);

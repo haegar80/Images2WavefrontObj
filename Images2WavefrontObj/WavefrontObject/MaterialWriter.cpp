@@ -2,19 +2,33 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <QFileInfo>
+#include <QDir>
 
-MaterialWriter::MaterialWriter()
+MaterialWriter::MaterialWriter(const std::string& p_dirPath, const std::string& p_fileName) :
+    m_currentDirPath(p_dirPath),
+    m_currentFileName(p_fileName)
 {
 }
 
-void MaterialWriter::WriteMaterials(const std::string& p_dirPath, const std::string& p_fileName, const std::vector<Material*> p_materials)
+void MaterialWriter::WriteMaterials(const std::vector<Material*> p_materials)
 {
     std::ofstream mtlFile;
 
-    std::string filePath((p_dirPath + p_fileName + ".mtl"));
-    mtlFile.open(filePath.c_str());
+    std::string fileNameTempString(m_currentFileName + ".mtl");
+    QString currentFileName(fileNameTempString.c_str());
+
+    QDir currentDirPath(QString(m_currentDirPath.c_str()));
+    if (!currentDirPath.exists())
+    {
+        currentDirPath.mkpath(".");
+    }
+
+    QFileInfo file(currentDirPath, currentFileName);
+    QString filePath = file.absoluteFilePath();
+    mtlFile.open(filePath.toUtf8().constData());
     if (!mtlFile) {
-        std::cout << "File " << filePath.c_str() << " could not be opened!!" << std::endl;
+        std::cout << "File " << filePath.toUtf8().constData() << " could not be opened!!" << std::endl;
         return;
     }
 

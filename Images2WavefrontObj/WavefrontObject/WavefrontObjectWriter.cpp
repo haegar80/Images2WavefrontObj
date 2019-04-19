@@ -6,10 +6,10 @@
 #include <QFileInfo>
 #include <QDir>
 
-WavefrontObjectWriter::WavefrontObjectWriter(const std::string& p_dirPath, const std::string& p_fileName)
+WavefrontObjectWriter::WavefrontObjectWriter(const std::string& p_dirPath, const std::string& p_fileName) :
+    m_currentDirPath(p_dirPath),
+    m_currentFileName(p_fileName)
 {
-    m_currentDirPath = p_dirPath;
-    m_currentFileName = p_fileName;
 }
 
 void WavefrontObjectWriter::WriteWavefrontObject(const std::vector<Mesh*>& p_meshes, const std::vector<Material*>& p_materials)
@@ -45,8 +45,8 @@ void WavefrontObjectWriter::WriteWavefrontObject(const std::vector<Mesh*>& p_mes
 
 void WavefrontObjectWriter::WriteMaterials(std::ofstream& p_objFile, const std::vector<Material*>& p_materials)
 {
-    MaterialWriter materialWriter;
-    materialWriter.WriteMaterials(m_currentDirPath, m_currentFileName, p_materials);
+    MaterialWriter materialWriter(m_currentDirPath, m_currentDirPath);
+    materialWriter.WriteMaterials(p_materials);
     p_objFile << "mtllib " << m_currentFileName << ".mtl\n";
 }
 
