@@ -13,13 +13,24 @@ QImage ImageProcessingFacade::CombineImages(const QStringList& p_images)
 QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
 {
     QImage gradientImage = m_edgeDetector.DetectEdges(p_image);
-    Mesh* mesh = m_vertexFinder.FindVerticesFromGradientImage(gradientImage);
+    std::vector<std::unique_ptr<Mesh>>& meshes = m_vertexFinder.FindVerticesFromGradientImage(gradientImage);
 
-    std::vector<Mesh*> meshes;
-    meshes.push_back(mesh);
+    std::vector<Mesh*> meshesRawPointer;
+    for (std::unique_ptr<Mesh>& mesh : meshes)
+    {
+        meshesRawPointer.push_back(mesh.get());
+    }
+    
     std::vector<Material*> materials;
+    Material material("DummyMaterial");
+    MaterialRGBValue rgbValue;
+    rgbValue.R = 1.0;
+    rgbValue.G = 1.0;
+    rgbValue.B = 1.0;
+    material.setDiffuseColor(rgbValue);
+    materials.push_back(&material);
 
-    m_wavefrontObjectWriter.WriteWavefrontObject(meshes, materials);
+    m_wavefrontObjectWriter.WriteWavefrontObject(meshesRawPointer, materials);
 
     return gradientImage;
 }

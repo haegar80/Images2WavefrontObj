@@ -24,7 +24,7 @@ void Mesh::AddVertex(float p_x, float p_y, float p_z)
     vertex.X = p_x;
     vertex.Y = p_y;
     vertex.Z = p_z;
-    m_tempVertices.push_back(vertex);
+    m_vertices.push_back(vertex);
 }
 
 void Mesh::AddNormal(float p_x, float p_y, float p_z)
@@ -33,7 +33,7 @@ void Mesh::AddNormal(float p_x, float p_y, float p_z)
     normal.X = p_x;
     normal.Y = p_y;
     normal.Z = p_z;
-    m_tempNormals.push_back(normal);
+    m_normals.push_back(normal);
 }
 
 void Mesh::AddTexture(float p_u, float p_v)
@@ -41,7 +41,7 @@ void Mesh::AddTexture(float p_u, float p_v)
     ObjTextureCoords texture;
     texture.U = p_u;
     texture.V = p_v;
-    m_tempTextures.push_back(texture);
+    m_textures.push_back(texture);
 }
 
 void Mesh::AddFace(Material* p_material)
@@ -66,11 +66,10 @@ void Mesh::AddFace(Material* p_material)
 
 void Mesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex, unsigned short p_normalIndex)
 {
-    AddVertexFromFaceIndex(p_vertexIndex);
-    AddTextureFromFaceIndex(p_textureIndex);
-    AddNormalFromFaceIndex(p_normalIndex);
-    m_submeshes.back()->AddFaceIndices(m_totalFaceIndices, m_totalFaceIndices, m_totalFaceIndices);
-    m_totalFaceIndices++;
+    //AddVertexFromFaceIndex(p_vertexIndex);
+    //AddTextureFromFaceIndex(p_textureIndex);
+    //AddNormalFromFaceIndex(p_normalIndex);
+    m_submeshes.back()->AddFaceIndices(p_vertexIndex, p_textureIndex, p_normalIndex);
 }
 
 void Mesh::AddVertexFromFaceIndex(unsigned short p_vertexIndex)
