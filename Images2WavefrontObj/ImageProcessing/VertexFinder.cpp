@@ -67,18 +67,20 @@ int VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX
     if (imagePixelGray > MinimumGradient)
     {
         int xEndIndexNew = xEndIndex + 1;
-        if ((p_nextY - 1) >= ImageBorderPixels)
+        bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
+
+        if (!hasPixelReachedOutOfBorder)
         {
             xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY - 1));
-        }
-
-        if (xEndIndex == (xEndIndexNew - 1))
-        {
-            xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), p_nextY);
 
             if (xEndIndex == (xEndIndexNew - 1))
             {
-                xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
+                xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), p_nextY);
+
+                if (xEndIndex == (xEndIndexNew - 1))
+                {
+                    xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
+                }
             }
         }
 
@@ -96,18 +98,20 @@ int VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX
     if (imagePixelGray > MinimumGradient)
     {
         int yEndIndexNew = yEndIndex + 1;
-        if ((p_nextX - 1) >= ImageBorderPixels)
+        bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
+
+        if (!hasPixelReachedOutOfBorder)
         {
             yEndIndexNew = GetHighGradientEndY(p_gradientImage, (p_nextX - 1), (p_nextY + 1));
-        }
-
-        if (yEndIndex == (yEndIndexNew - 1))
-        {
-            yEndIndexNew = GetHighGradientEndY(p_gradientImage, p_nextX, (p_nextY + 1));
 
             if (yEndIndex == (yEndIndexNew - 1))
             {
-                yEndIndexNew = GetHighGradientEndY(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
+                yEndIndexNew = GetHighGradientEndY(p_gradientImage, p_nextX, (p_nextY + 1));
+
+                if (yEndIndex == (yEndIndexNew - 1))
+                {
+                    yEndIndexNew = GetHighGradientEndY(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
+                }
             }
         }
 
@@ -115,6 +119,22 @@ int VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX
     }
 
     return yEndIndex;
+}
+
+bool VertexFinder::HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height)
+{
+    bool hasPixelReachedOutOfBorder = false;
+
+    if ((p_nextX < ImageBorderPixels) || (p_nextX > (p_width - ImageBorderPixels)))
+    {
+        hasPixelReachedOutOfBorder = true;
+    }
+    else if ((p_nextY < ImageBorderPixels) || (p_nextY > (p_height - ImageBorderPixels)))
+    {
+        hasPixelReachedOutOfBorder = true;
+    }
+
+    return hasPixelReachedOutOfBorder;
 }
 
 int VertexFinder::GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY)
@@ -146,14 +166,14 @@ void VertexFinder::AddVerticesAndFace(int p_startX, int p_endX, int p_startY, in
         {
             isStartVertexNew = false;
             SAlreadyAddedVertexData alreadyAddedVertexData = GetInfoFromLastCheckedVertex();
-            faceIndices[0] = alreadyAddedVertexData.vectorIndex;
+            faceIndices[0] = alreadyAddedVertexData.faceIndex;
         }
 
         if (VertexFinder::SurfaceAvailable == vertexAlreadyAddedResultEnd)
         {
             isEndVertexNew = false;
             SAlreadyAddedVertexData alreadyAddedVertexData = GetInfoFromLastCheckedVertex();
-            faceIndices[3] = alreadyAddedVertexData.vectorIndex;
+            faceIndices[3] = alreadyAddedVertexData.faceIndex;
         }
        
         if (isStartVertexNew || isEndVertexNew)
@@ -178,25 +198,20 @@ void VertexFinder::AddVerticesAndFace(int p_startX, int p_endX, int p_startY, in
         
         currentMesh->AddFace(&m_dummyMaterial);
 
-        int numberOfAddingFaceIndices = numberOfNewVertices;
-        for (int i = 0; i < numberOfAddingFaceIndices; i++)
+        int indexOffset = 0;
+        if (!isStartVertexNew)
         {
-            if ((!isStartVertexNew) && (0 == i))
-            {
-                numberOfAddingFaceIndices++;
-                continue;
-            }
-            else if ((!isEndVertexNew) && (3 == i))
-            {
-                continue;;
-            }
+            indexOffset = 1;
+        }
 
-            faceIndices[i] = numberOfExistingVertices + i;
+        for (int i = 0; i < numberOfNewVertices; i++)
+        {
+            faceIndices[i + indexOffset] = numberOfExistingVertices + i + 1;
         }
 
         for (int i = 0; i < 4; i++)
         {
-            currentMesh->AddFaceIndices(faceIndices[i] + 1);
+            currentMesh->AddFaceIndices(faceIndices[i]);
         }
 
         m_nextCheckY = p_endY;
@@ -244,7 +259,7 @@ bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isSta
         int xFoundVertex = 0;
         int yFoundVertex = 0;
 
-        MergeMeshesIfNotInSameMesh(xFoundPairFirst, yFoundPairFirst, xFoundPairSecond, yFoundPairSecond);
+        MergeMeshesIfEdgesNotInSameMesh(xFoundPairFirst, yFoundPairFirst, xFoundPairSecond, yFoundPairSecond);
 
         if (p_isStartFace)
         {
@@ -329,7 +344,7 @@ Mesh* VertexFinder::GetMeshBasedOnEdgeX(int p_startX, int p_endX)
 
     for (std::unique_ptr<Mesh>& mesh : m_meshes)
     {
-        meshFound = IsEdgeFound(mesh.get(), p_startX, p_endX, true);
+        meshFound = IsEdgeFoundInMesh(mesh.get(), p_startX, p_endX, true);
 
         if (meshFound)
         {
@@ -348,7 +363,7 @@ Mesh* VertexFinder::GetMeshBasedOnEdgeY(int p_startY, int p_endY)
 
     for (std::unique_ptr<Mesh>& mesh : m_meshes)
     {
-        meshFound = IsEdgeFound(mesh.get(), p_startY, p_endY, false);
+        meshFound = IsEdgeFoundInMesh(mesh.get(), p_startY, p_endY, false);
 
         if (meshFound)
         {
@@ -360,7 +375,7 @@ Mesh* VertexFinder::GetMeshBasedOnEdgeY(int p_startY, int p_endY)
     return foundMesh;
 }
 
-bool VertexFinder::IsEdgeFound(const Mesh* p_mesh, int p_startEdge, int p_endEdge, bool p_isXAxis)
+bool VertexFinder::IsEdgeFoundInMesh(const Mesh* p_mesh, int p_startEdge, int p_endEdge, bool p_isXAxis)
 {
     bool edgeFound = false;
 
@@ -413,7 +428,7 @@ bool VertexFinder::IsEdgeFound(const Mesh* p_mesh, int p_startEdge, int p_endEdg
     return edgeFound;
 }
 
-void VertexFinder::MergeMeshesIfNotInSameMesh(int p_startX, int p_startY, int p_endX, int p_endY)
+void VertexFinder::MergeMeshesIfEdgesNotInSameMesh(int p_startX, int p_startY, int p_endX, int p_endY)
 {
     Mesh* meshXAxis = GetMeshBasedOnEdgeX(p_startX, p_endX);
     Mesh* meshYAxis = GetMeshBasedOnEdgeY(p_startY, p_endY);
@@ -449,10 +464,15 @@ void VertexFinder::MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh)
         }
     }
 
+    DeleteMesh(p_secondMesh);
+}
+
+void VertexFinder::DeleteMesh(Mesh* p_mesh)
+{
     auto itDelete = m_meshes.begin();
     for (; itDelete < m_meshes.end(); itDelete++)
     {
-        if (p_secondMesh == (*itDelete).get())
+        if (p_mesh == (*itDelete).get())
         {
             break;
         }
@@ -460,7 +480,7 @@ void VertexFinder::MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh)
 
     if (m_meshes.end() != itDelete)
     {
-        (void) m_meshes.erase(itDelete);
+        (void)m_meshes.erase(itDelete);
     }
 }
 
@@ -477,7 +497,7 @@ VertexFinder::SAlreadyAddedVertexData VertexFinder::GetInfoFromLastCheckedVertex
         if ((vertices.end() != itX) && (vertices.end() != itY))
         {
             alreadyAddedVertexData.mesh = mesh.get();
-            alreadyAddedVertexData.vectorIndex = itX - vertices.begin();
+            alreadyAddedVertexData.faceIndex = itX - vertices.begin() + 1;
             break;
         }
     }
