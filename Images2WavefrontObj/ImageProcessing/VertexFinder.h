@@ -33,9 +33,19 @@ private:
         int faceIndex;
     };
 
+    struct SFacePixels
+    {
+        int startX;
+        int endX;
+        int startY;
+        int endY;
+    };
+
     static constexpr int ImageBorderPixels = 2;
     static constexpr int MinimumGradient = 50;
     static constexpr int MinimumNumberOfPixels = 3;
+    static constexpr int FaceIndexStartPixels = 0;
+    static constexpr int FaceIndexEndPixels = 2;
 
     std::vector<std::unique_ptr<Mesh>> m_meshes;
     Material m_dummyMaterial{"DummyMaterial"};
@@ -49,9 +59,10 @@ private:
     int GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     bool HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height);
     int GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY);
-    void AddVerticesAndFace(int p_startX, int p_endX, int p_startY, int p_endY);
+    void AddVerticesAndFace(SFacePixels p_facePixels);
+    int AddVertices(Mesh* p_mesh, SFacePixels p_facePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
     bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isStartFace);
-    std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(int p_startX, int p_startY, int p_endX, int p_endY);
+    std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(SFacePixels p_facePixels);
 
     Mesh* GetCurrentMesh(EVertexAlreadyAddedResult p_vertexAlreadyAddedResultStart, EVertexAlreadyAddedResult p_vertexAlreadyAddedResultEnd);
     Mesh* GetMeshBasedOnEdgeX(int p_startX, int p_endX);
