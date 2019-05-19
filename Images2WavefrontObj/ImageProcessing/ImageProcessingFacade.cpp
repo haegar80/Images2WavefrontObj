@@ -19,6 +19,7 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
     for (std::unique_ptr<Mesh>& mesh : meshes)
     {
         meshesRawPointer.push_back(mesh.get());
+        m_textureCreator.CreateTextures(p_image, mesh.get());
     }
     
     std::vector<Material*> materials;
