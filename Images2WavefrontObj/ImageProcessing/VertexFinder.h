@@ -61,14 +61,15 @@ private:
     int GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY);
     void AddVerticesAndFace(SFacePixels p_facePixels);
     int AddVertices(Mesh* p_mesh, SFacePixels p_facePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
-    bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isStartFace);
+    bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isNewVertexBeginningFace);
+    void HandleAlreadyAddedVertex(SFacePixels p_facePixels, bool p_isNewVertexBeginningFace);
     std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(SFacePixels p_facePixels);
 
     Mesh* GetCurrentMesh(EVertexAlreadyAddedResult p_vertexAlreadyAddedResultStart, EVertexAlreadyAddedResult p_vertexAlreadyAddedResultEnd);
     Mesh* GetMeshBasedOnEdgeX(int p_startX, int p_endX);
     Mesh* GetMeshBasedOnEdgeY(int p_startY, int p_endY);
     bool IsEdgeFoundInMesh(const Mesh* p_mesh, int p_startEdge, int p_endEdge, bool p_isXAxis);
-    void MergeMeshesIfEdgesNotInSameMesh(int p_startX, int p_startY, int p_endX, int p_endY);
+    void MergeMeshesIfEdgesNotInSameMesh(SFacePixels p_facePixels);
     void MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh);
     void DeleteMesh(Mesh* p_mesh);
     SAlreadyAddedVertexData GetInfoFromLastCheckedVertex();

@@ -240,7 +240,7 @@ int VertexFinder::AddVertices(Mesh* p_mesh, SFacePixels p_facePixels, bool p_isS
     return numberOfVerticesAdded;
 }
 
-bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isStartFace)
+bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isNewVertexBeginningFace)
 {
     bool vertexAlreadyAdded = false;
     bool xFound = false;
@@ -277,31 +277,41 @@ bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isSta
     }
 
     if (xFound && yFound)
-    {
-        int xFoundVertex = 0;
-        int yFoundVertex = 0;
-
-        MergeMeshesIfEdgesNotInSameMesh(xFoundPairFirst, yFoundPairFirst, xFoundPairSecond, yFoundPairSecond);
-
-        if (p_isStartFace)
-        {
-            xFoundVertex = xFoundPairFirst;
-            yFoundVertex = yFoundPairFirst;
-        } 
-        else
-        {
-            xFoundVertex = xFoundPairSecond;
-            yFoundVertex = yFoundPairSecond;
-        }
-
+    {   
+        SFacePixels facePixels;
+        facePixels.startX = xFoundPairFirst;
+        facePixels.endX = xFoundPairSecond;
+        facePixels.startY = yFoundPairFirst;
+        facePixels.endY = yFoundPairSecond;
+        HandleAlreadyAddedVertex(facePixels, p_isNewVertexBeginningFace);
 
         m_nextCheckY = tempNextCheckY;
-        m_lastFoundAlreadyAddedVertex = std::make_pair(xFoundVertex, yFoundVertex);
-  
+
         vertexAlreadyAdded = true;
     }
 
     return vertexAlreadyAdded;
+}
+
+void VertexFinder::HandleAlreadyAddedVertex(SFacePixels p_facePixels, bool p_isNewVertexBeginningFace)
+{
+    MergeMeshesIfEdgesNotInSameMesh(p_facePixels);
+
+    int xFoundVertex = 0;
+    int yFoundVertex = 0;
+
+    if (p_isNewVertexBeginningFace)
+    {
+        xFoundVertex = p_facePixels.startX;
+        yFoundVertex = p_facePixels.startY;
+    }
+    else
+    {
+        xFoundVertex = p_facePixels.endX;
+        yFoundVertex = p_facePixels.endY;
+    }
+
+    m_lastFoundAlreadyAddedVertex = std::make_pair(xFoundVertex, yFoundVertex);
 }
 
 std::vector<VertexFinder::EVertexAlreadyAddedResult> VertexFinder::AreVerticesAlreadyAdded(SFacePixels p_facePixels)
@@ -450,10 +460,10 @@ bool VertexFinder::IsEdgeFoundInMesh(const Mesh* p_mesh, int p_startEdge, int p_
     return edgeFound;
 }
 
-void VertexFinder::MergeMeshesIfEdgesNotInSameMesh(int p_startX, int p_startY, int p_endX, int p_endY)
+void VertexFinder::MergeMeshesIfEdgesNotInSameMesh(SFacePixels p_facePixels)
 {
-    Mesh* meshXAxis = GetMeshBasedOnEdgeX(p_startX, p_endX);
-    Mesh* meshYAxis = GetMeshBasedOnEdgeY(p_startY, p_endY);
+    Mesh* meshXAxis = GetMeshBasedOnEdgeX(p_facePixels.startX, p_facePixels.endX);
+    Mesh* meshYAxis = GetMeshBasedOnEdgeY(p_facePixels.startY, p_facePixels.endY);
 
     if ((nullptr != meshXAxis) && (nullptr != meshYAxis) && (meshXAxis != meshYAxis))
     {
