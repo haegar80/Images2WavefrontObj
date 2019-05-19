@@ -33,7 +33,7 @@ private:
         int faceIndex;
     };
 
-    struct SFacePixels
+    struct SEdgePixels
     {
         int startX;
         int endX;
@@ -59,17 +59,17 @@ private:
     int GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     bool HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height);
     int GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY);
-    void AddVerticesAndFace(SFacePixels p_facePixels);
-    int AddVertices(Mesh* p_mesh, SFacePixels p_facePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
+    void AddVerticesAndFace(SEdgePixels p_edgePixels);
+    int AddVertices(Mesh* p_mesh, SEdgePixels p_edgePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
     bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isNewVertexBeginningFace);
-    void HandleAlreadyAddedVertex(SFacePixels p_facePixels, bool p_isNewVertexBeginningFace);
-    std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(SFacePixels p_facePixels);
+    void HandleAlreadyAddedVertex(SEdgePixels p_edgePixels, bool p_isNewVertexBeginningFace);
+    std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(SEdgePixels p_facePixels);
 
     Mesh* GetCurrentMesh(EVertexAlreadyAddedResult p_vertexAlreadyAddedResultStart, EVertexAlreadyAddedResult p_vertexAlreadyAddedResultEnd);
     Mesh* GetMeshBasedOnEdgeX(int p_startX, int p_endX);
     Mesh* GetMeshBasedOnEdgeY(int p_startY, int p_endY);
     bool IsEdgeFoundInMesh(const Mesh* p_mesh, int p_startEdge, int p_endEdge, bool p_isXAxis);
-    void MergeMeshesIfEdgesNotInSameMesh(SFacePixels p_facePixels);
+    void MergeMeshesIfEdgesNotInSameMesh(SEdgePixels p_edgePixels);
     void MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh);
     void DeleteMesh(Mesh* p_mesh);
     SAlreadyAddedVertexData GetInfoFromLastCheckedVertex();

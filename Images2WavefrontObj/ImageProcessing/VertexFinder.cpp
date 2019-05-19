@@ -53,12 +53,12 @@ bool VertexFinder::ProcessEdge(const QImage& p_gradientImage, int p_startX, int 
 
     if (nextVertexFound)
     {
-        SFacePixels facePixels;
-        facePixels.startX = p_startX;
-        facePixels.endX = xEndIndex;
-        facePixels.startY = p_startY;
-        facePixels.endY = yEndIndex;
-        AddVerticesAndFace(facePixels);
+        SEdgePixels edgePixels;
+        edgePixels.startX = p_startX;
+        edgePixels.endX = xEndIndex;
+        edgePixels.startY = p_startY;
+        edgePixels.endY = yEndIndex;
+        AddVerticesAndFace(edgePixels);
     }
 
     return nextVertexFound;
@@ -150,9 +150,9 @@ int VertexFinder::GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int 
     return imagePixelGray;
 }
 
-void VertexFinder::AddVerticesAndFace(SFacePixels p_facePixels)
+void VertexFinder::AddVerticesAndFace(SEdgePixels p_edgePixels)
 {
-    std::vector<VertexFinder::EVertexAlreadyAddedResult> verticesAlreadyAddedResult = AreVerticesAlreadyAdded(p_facePixels);
+    std::vector<VertexFinder::EVertexAlreadyAddedResult> verticesAlreadyAddedResult = AreVerticesAlreadyAdded(p_edgePixels);
     VertexFinder::EVertexAlreadyAddedResult vertexAlreadyAddedResultStart = verticesAlreadyAddedResult.at(0);
     VertexFinder::EVertexAlreadyAddedResult vertexAlreadyAddedResultEnd = verticesAlreadyAddedResult.at(1);
 
@@ -180,7 +180,7 @@ void VertexFinder::AddVerticesAndFace(SFacePixels p_facePixels)
             faceIndices[FaceIndexEndPixels] = alreadyAddedVertexData.faceIndex;
         }
        
-        int numberOfNewVertices = AddVertices(currentMesh, p_facePixels, isStartVertexNew, isEndVertexNew);
+        int numberOfNewVertices = AddVertices(currentMesh, p_edgePixels, isStartVertexNew, isEndVertexNew);
         
         currentMesh->AddFace(&m_dummyMaterial);
 
@@ -206,11 +206,11 @@ void VertexFinder::AddVerticesAndFace(SFacePixels p_facePixels)
             currentMesh->AddFaceIndices(faceIndices[i]);
         }
 
-        m_nextCheckY = p_facePixels.endY;
+        m_nextCheckY = p_edgePixels.endY;
     }
 }
 
-int VertexFinder::AddVertices(Mesh* p_mesh, SFacePixels p_facePixels, bool p_isStartVertexNew, bool p_isEndVertexNew)
+int VertexFinder::AddVertices(Mesh* p_mesh, SEdgePixels p_edgePixels, bool p_isStartVertexNew, bool p_isEndVertexNew)
 {
     int numberOfVerticesAdded = 0;
 
@@ -219,22 +219,22 @@ int VertexFinder::AddVertices(Mesh* p_mesh, SFacePixels p_facePixels, bool p_isS
         if (p_isStartVertexNew)
         {
             numberOfVerticesAdded++;
-            p_mesh->AddVertex(p_facePixels.startX, p_facePixels.startY, 0);
+            p_mesh->AddVertex(p_edgePixels.startX, p_edgePixels.startY, 0);
         }
         numberOfVerticesAdded++;
-        p_mesh->AddVertex(p_facePixels.startX, p_facePixels.endY, 0);
+        p_mesh->AddVertex(p_edgePixels.startX, p_edgePixels.endY, 0);
 
         if (p_isEndVertexNew)
         {
             numberOfVerticesAdded++;
-            p_mesh->AddVertex(p_facePixels.endX, p_facePixels.endY, 0);
+            p_mesh->AddVertex(p_edgePixels.endX, p_edgePixels.endY, 0);
         }
         numberOfVerticesAdded++;
-        p_mesh->AddVertex(p_facePixels.endX, p_facePixels.startY, 0);
+        p_mesh->AddVertex(p_edgePixels.endX, p_edgePixels.startY, 0);
 
 
-        m_highGradientRangesX.insert(std::make_pair(p_facePixels.startX, p_facePixels.endX));
-        m_highGradientRangesY.insert(std::make_pair(p_facePixels.startY, p_facePixels.endY));
+        m_highGradientRangesX.insert(std::make_pair(p_edgePixels.startX, p_edgePixels.endX));
+        m_highGradientRangesY.insert(std::make_pair(p_edgePixels.startY, p_edgePixels.endY));
     }
 
     return numberOfVerticesAdded;
@@ -278,12 +278,12 @@ bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isNew
 
     if (xFound && yFound)
     {   
-        SFacePixels facePixels;
-        facePixels.startX = xFoundPairFirst;
-        facePixels.endX = xFoundPairSecond;
-        facePixels.startY = yFoundPairFirst;
-        facePixels.endY = yFoundPairSecond;
-        HandleAlreadyAddedVertex(facePixels, p_isNewVertexBeginningFace);
+        SEdgePixels edgePixels;
+        edgePixels.startX = xFoundPairFirst;
+        edgePixels.endX = xFoundPairSecond;
+        edgePixels.startY = yFoundPairFirst;
+        edgePixels.endY = yFoundPairSecond;
+        HandleAlreadyAddedVertex(edgePixels, p_isNewVertexBeginningFace);
 
         m_nextCheckY = tempNextCheckY;
 
@@ -293,34 +293,34 @@ bool VertexFinder::IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isNew
     return vertexAlreadyAdded;
 }
 
-void VertexFinder::HandleAlreadyAddedVertex(SFacePixels p_facePixels, bool p_isNewVertexBeginningFace)
+void VertexFinder::HandleAlreadyAddedVertex(SEdgePixels p_edgePixels, bool p_isNewVertexBeginningFace)
 {
-    MergeMeshesIfEdgesNotInSameMesh(p_facePixels);
+    MergeMeshesIfEdgesNotInSameMesh(p_edgePixels);
 
     int xFoundVertex = 0;
     int yFoundVertex = 0;
 
     if (p_isNewVertexBeginningFace)
     {
-        xFoundVertex = p_facePixels.startX;
-        yFoundVertex = p_facePixels.startY;
+        xFoundVertex = p_edgePixels.startX;
+        yFoundVertex = p_edgePixels.startY;
     }
     else
     {
-        xFoundVertex = p_facePixels.endX;
-        yFoundVertex = p_facePixels.endY;
+        xFoundVertex = p_edgePixels.endX;
+        yFoundVertex = p_edgePixels.endY;
     }
 
     m_lastFoundAlreadyAddedVertex = std::make_pair(xFoundVertex, yFoundVertex);
 }
 
-std::vector<VertexFinder::EVertexAlreadyAddedResult> VertexFinder::AreVerticesAlreadyAdded(SFacePixels p_facePixels)
+std::vector<VertexFinder::EVertexAlreadyAddedResult> VertexFinder::AreVerticesAlreadyAdded(SEdgePixels p_edgePixels)
 {
     VertexFinder::EVertexAlreadyAddedResult resultStartVertex = VertexFinder::VertexNew;
     VertexFinder::EVertexAlreadyAddedResult resultEndVertex = VertexFinder::VertexNew;
 
-    bool isStartVertexAlreadyAdded = IsVertexAlreadyAdded(p_facePixels.startX, p_facePixels.startY, true);
-    bool isEndVertexAlreadyAdded = IsVertexAlreadyAdded(p_facePixels.endX, p_facePixels.endY, false);
+    bool isStartVertexAlreadyAdded = IsVertexAlreadyAdded(p_edgePixels.startX, p_edgePixels.startY, true);
+    bool isEndVertexAlreadyAdded = IsVertexAlreadyAdded(p_edgePixels.endX, p_edgePixels.endY, false);
 
     if (isStartVertexAlreadyAdded && isEndVertexAlreadyAdded)
     {
@@ -460,10 +460,10 @@ bool VertexFinder::IsEdgeFoundInMesh(const Mesh* p_mesh, int p_startEdge, int p_
     return edgeFound;
 }
 
-void VertexFinder::MergeMeshesIfEdgesNotInSameMesh(SFacePixels p_facePixels)
+void VertexFinder::MergeMeshesIfEdgesNotInSameMesh(SEdgePixels p_edgePixels)
 {
-    Mesh* meshXAxis = GetMeshBasedOnEdgeX(p_facePixels.startX, p_facePixels.endX);
-    Mesh* meshYAxis = GetMeshBasedOnEdgeY(p_facePixels.startY, p_facePixels.endY);
+    Mesh* meshXAxis = GetMeshBasedOnEdgeX(p_edgePixels.startX, p_edgePixels.endX);
+    Mesh* meshYAxis = GetMeshBasedOnEdgeY(p_edgePixels.startY, p_edgePixels.endY);
 
     if ((nullptr != meshXAxis) && (nullptr != meshYAxis) && (meshXAxis != meshYAxis))
     {
