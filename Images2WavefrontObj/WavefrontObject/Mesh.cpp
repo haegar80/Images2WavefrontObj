@@ -46,6 +46,27 @@ void Mesh::AddTexture(float p_u, float p_v)
 
 void Mesh::AddFace(Material* p_material)
 {
+    FindAndUpdateSubmesh(p_material);
+    m_submeshes.back()->AddNewFace();
+}
+
+void Mesh::MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material)
+{
+    SubMesh* oldSubmesh = m_submeshes.at(p_submeshVectorIndex);
+    ObjFace oldFace = oldSubmesh->DeleteFace(p_faceVectorIndex);
+
+    // For new material
+    FindAndUpdateSubmesh(p_material);
+    m_submeshes.back()->AddExistingFace(std::move(oldFace));
+}
+
+void Mesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex, unsigned short p_normalIndex)
+{
+    m_submeshes.back()->AddFaceIndices(p_vertexIndex, p_textureIndex, p_normalIndex);
+}
+
+void Mesh::FindAndUpdateSubmesh(Material* p_material)
+{
     if (p_material != m_lastUsedMaterial)
     {
         auto subMeshWithMatchingMaterial = std::find_if(m_submeshes.begin(), m_submeshes.end(), [p_material](SubMesh* submesh) {return p_material == submesh->GetMaterial(); });
@@ -57,38 +78,11 @@ void Mesh::AddFace(Material* p_material)
         }
         else {
             SubMesh* submeshMoveToBack = *subMeshWithMatchingMaterial;
-            m_submeshes.erase(subMeshWithMatchingMaterial);
-            m_submeshes.push_back(submeshMoveToBack);
+            if (m_submeshes.back() != submeshMoveToBack)
+            {
+                m_submeshes.erase(subMeshWithMatchingMaterial);
+                m_submeshes.push_back(submeshMoveToBack);
+            }
         }
-    }
-    m_submeshes.back()->AddFace();
-}
-
-void Mesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex, unsigned short p_normalIndex)
-{
-    //AddVertexFromFaceIndex(p_vertexIndex);
-    //AddTextureFromFaceIndex(p_textureIndex);
-    //AddNormalFromFaceIndex(p_normalIndex);
-    m_submeshes.back()->AddFaceIndices(p_vertexIndex, p_textureIndex, p_normalIndex);
-}
-
-void Mesh::AddVertexFromFaceIndex(unsigned short p_vertexIndex)
-{
-    m_vertices.push_back(m_tempVertices.at(p_vertexIndex));
-}
-
-void Mesh::AddTextureFromFaceIndex(unsigned short p_textureIndex)
-{
-    if (m_tempTextures.size() > 0)
-    {
-        m_textures.push_back(m_tempTextures.at(p_textureIndex));
-    }
-}
-
-void Mesh::AddNormalFromFaceIndex(unsigned short p_normalIndex)
-{
-    if (m_tempNormals.size() > 0)
-    {
-        m_normals.push_back(m_tempNormals.at(p_normalIndex));
     }
 }

@@ -4,7 +4,8 @@
 #include "EdgeDetector.h"
 #include "VertexFinder.h"
 #include "TextureCreator.h"
-#include "WavefrontObject\WavefrontObjectWriter.h"
+#include "MaterialProcessing/MaterialManager.h"
+#include "WavefrontObject/WavefrontObjectWriter.h"
 #include <QImage>
 
 class QStringList;
@@ -24,6 +25,7 @@ private:
     EdgeDetector m_edgeDetector{};
     VertexFinder m_vertexFinder{};
     TextureCreator m_textureCreator{};
+    MaterialManager m_materialManager{};
 
     WavefrontObjectWriter m_wavefrontObjectWriter{"Wavefront", "wavefront"};
 };

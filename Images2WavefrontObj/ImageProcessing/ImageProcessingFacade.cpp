@@ -15,23 +15,18 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
     QImage gradientImage = m_edgeDetector.DetectEdges(p_image);
     std::vector<std::unique_ptr<Mesh>>& meshes = m_vertexFinder.FindVerticesFromGradientImage(gradientImage);
 
+    m_materialManager.CreateDefaultMaterial();
+
     std::vector<Mesh*> meshesRawPointer;
     for (std::unique_ptr<Mesh>& mesh : meshes)
     {
         meshesRawPointer.push_back(mesh.get());
-        m_textureCreator.CreateTextures(p_image, mesh.get());
+        std::map<FaceKey, std::string>& texturePaths = m_textureCreator.CreateTextures(p_image, mesh.get());
+        m_materialManager.CreateMaterialsBasedOnTextures(texturePaths);
+        m_materialManager.UpdateMaterialsInMesh(mesh.get());
     }
-    
-    std::vector<Material*> materials;
-    Material material("DummyMaterial");
-    MaterialRGBValue rgbValue;
-    rgbValue.R = 1.0;
-    rgbValue.G = 1.0;
-    rgbValue.B = 1.0;
-    material.setDiffuseColor(rgbValue);
-    materials.push_back(&material);
 
-    m_wavefrontObjectWriter.WriteWavefrontObject(meshesRawPointer, materials);
+    m_wavefrontObjectWriter.WriteWavefrontObject(meshesRawPointer, m_materialManager.GetMaterials());
 
     return gradientImage;
 }

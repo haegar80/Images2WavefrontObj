@@ -5,9 +5,9 @@
 
 struct ObjFaceIndices
 {
-	unsigned short VertexIndex;
-	unsigned short NormalIndex;
-	unsigned short TextureIndex;
+	int VertexIndex;
+	int NormalIndex;
+	int TextureIndex;
 };
 
 struct ObjFace
@@ -21,8 +21,10 @@ public:
     SubMesh(Material* p_Material);
     ~SubMesh() = default;
 
-    void AddFace();
-    void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
+    void AddNewFace();
+    void AddExistingFace(ObjFace p_existingFace);
+    void AddFaceIndices(int p_vertexIndex, int p_textureIndex = 0, int p_normalIndex = 0);
+    ObjFace DeleteFace(int p_faceVectorIndex);
 
     Material* GetMaterial() const {
         return m_material;

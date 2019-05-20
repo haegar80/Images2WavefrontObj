@@ -203,7 +203,7 @@ void VertexFinder::AddVerticesAndFace(SEdgePixels p_edgePixels)
 
         for (int i = 0; i < 4; i++)
         {
-            currentMesh->AddFaceIndices(faceIndices[i]);
+            currentMesh->AddFaceIndices(faceIndices[i], faceIndices[i]);
         }
 
         m_nextCheckY = p_edgePixels.endY;
@@ -491,7 +491,8 @@ void VertexFinder::MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh)
             std::vector<ObjFaceIndices> faceIndices = face.Indices;
             for (ObjFaceIndices faceIndex : faceIndices)
             {
-                p_firstMesh->AddFaceIndices(faceIndex.VertexIndex + numberOfVerticesFirstMesh);
+                int faceIndexToStore = faceIndex.VertexIndex + numberOfVerticesFirstMesh;
+                p_firstMesh->AddFaceIndices(faceIndexToStore, faceIndexToStore);
             }
         }
     }

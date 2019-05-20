@@ -8,11 +8,15 @@ TextureCreator::TextureCreator()
 {
 }
 
-void TextureCreator::CreateTextures(const QImage& p_originalImage, Mesh* p_mesh)
+std::map<FaceKey, std::string>& TextureCreator::CreateTextures(const QImage& p_originalImage, Mesh* p_mesh)
 {
+    m_tempTextures.clear();
+    m_texturePaths.clear();
     m_originalImage = p_originalImage;
     AnalyzeFaces(p_mesh);
-    SaveTextures();
+    SaveTextures(p_mesh);
+
+    return m_texturePaths;
 }
 
 void TextureCreator::AnalyzeFaces(Mesh* p_mesh)
@@ -117,22 +121,30 @@ void TextureCreator::CreateTempTextures(FaceKey p_faceKey, SEdgePixels p_pixelsF
         tempImageX++;
     }
 
-    m_tempTextures.insert(std::make_pair(p_faceKey, std::move(tempImage)));
+    m_tempTextures.emplace(std::make_pair(p_faceKey, tempImage));
 }
 
-void TextureCreator::SaveTextures()
+void TextureCreator::SaveTextures(Mesh* p_mesh)
 {
     QDir texturetDirPath(QString("textures"));
     if (!texturetDirPath.exists()) {
         texturetDirPath.mkdir(".");
     }
 
+    int tempTextureNumber = 1;
     for (std::pair<FaceKey, QImage> tempTexture : m_tempTextures)
     {
         std::stringstream filePathString;
-        filePathString << "texture_" << tempTexture.first.first << "_" << tempTexture.first.second << ".jpg";    
+        filePathString << "texture_" << tempTextureNumber << ".jpg";
         QFileInfo textureFile(texturetDirPath, filePathString.str().c_str());
 
         bool successful = tempTexture.second.save(textureFile.absoluteFilePath(), "JPG");
+        
+        if (successful)
+        {
+            m_tempTextures.emplace(std::make_pair(tempTexture.first, filePathString.str().c_str()));
+        }
+
+        tempTextureNumber++;
     }
 }

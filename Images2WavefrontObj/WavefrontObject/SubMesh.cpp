@@ -5,7 +5,7 @@ SubMesh::SubMesh(Material* p_material) :
 {
 }
 
-void SubMesh::AddFace()
+void SubMesh::AddNewFace()
 {
     std::vector<ObjFaceIndices> indices;
     ObjFace face;
@@ -13,7 +13,12 @@ void SubMesh::AddFace()
     m_faces.push_back(face);
 }
 
-void SubMesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex, unsigned short p_normalIndex)
+void SubMesh::AddExistingFace(ObjFace p_existingFace)
+{
+    m_faces.push_back(p_existingFace);
+}
+
+void SubMesh::AddFaceIndices(int p_vertexIndex, int p_textureIndex, int p_normalIndex)
 {
     ObjFaceIndices indices;
     indices.VertexIndex = p_vertexIndex;
@@ -25,6 +30,15 @@ void SubMesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_text
     {
         AddTriangledFace(face);
     }
+}
+
+ObjFace SubMesh::DeleteFace(int p_faceVectorIndex)
+{
+    auto itDelete = m_faces.begin() + p_faceVectorIndex;
+    ObjFace deletedFace = *itDelete;
+    (void)m_faces.erase(itDelete);
+
+    return deletedFace;
 }
 
 void SubMesh::AddTriangledFace(ObjFace p_originalFace)

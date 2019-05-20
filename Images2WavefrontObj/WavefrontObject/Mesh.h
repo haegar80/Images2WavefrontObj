@@ -28,6 +28,7 @@ public:
     void AddNormal(float p_x, float p_y, float p_z);
     void AddTexture(float p_u, float p_v);
     void AddFace(Material* p_material);
+    void MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material);
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
 
     std::string getName() const
@@ -61,6 +62,7 @@ private:
     unsigned int m_totalFaceIndices{ 1 }; // References to vertices/normals/textures start always with 1
     Material* m_lastUsedMaterial{ nullptr };
 
+    void FindAndUpdateSubmesh(Material* p_material);
     void AddVertexFromFaceIndex(unsigned short p_vertexIndex);
     void AddTextureFromFaceIndex(unsigned short p_textureIndex);
     void AddNormalFromFaceIndex(unsigned short p_normalIndex);
