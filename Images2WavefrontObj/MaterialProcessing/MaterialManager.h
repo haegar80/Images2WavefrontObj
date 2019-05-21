@@ -13,7 +13,7 @@ class MaterialManager
 {
 public:
     MaterialManager();
-    virtual ~MaterialManager() = default;
+    virtual ~MaterialManager();
 
     void CreateDefaultMaterial();
     void CreateMaterialsBasedOnTextures(std::map<FaceKey, std::string>& p_texturePaths);
@@ -26,5 +26,8 @@ public:
 private:
     std::vector<Material*> m_materials{};
     std::map<FaceKey, Material*> m_pendingUpdateMaterialsInMesh{};
+    
+    int GetVertexIndex(Mesh* p_mesh, int p_submeshVectorIndex, int p_faceVectorIndex);
+    bool HasMoreFacesWithSameVertexIndex(Mesh* p_mesh, int p_submeshVectorIndex, int p_faceVectorIndex, int p_vertexIndex);
 };
 

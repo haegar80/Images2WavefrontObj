@@ -65,6 +65,16 @@ void Mesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_texture
     m_submeshes.back()->AddFaceIndices(p_vertexIndex, p_textureIndex, p_normalIndex);
 }
 
+void Mesh::DeleteEmptySubmesh(int p_submeshVectorIndex)
+{
+    SubMesh* submesh = m_submeshes.at(p_submeshVectorIndex);
+    if (0 == submesh->GetFaces().size())
+    {
+        auto itDelete = m_submeshes.begin() + p_submeshVectorIndex;
+        (void)m_submeshes.erase(itDelete);
+    }
+}
+
 void Mesh::FindAndUpdateSubmesh(Material* p_material)
 {
     if (p_material != m_lastUsedMaterial)
@@ -78,11 +88,8 @@ void Mesh::FindAndUpdateSubmesh(Material* p_material)
         }
         else {
             SubMesh* submeshMoveToBack = *subMeshWithMatchingMaterial;
-            if (m_submeshes.back() != submeshMoveToBack)
-            {
-                m_submeshes.erase(subMeshWithMatchingMaterial);
-                m_submeshes.push_back(submeshMoveToBack);
-            }
+            m_submeshes.erase(subMeshWithMatchingMaterial);
+            m_submeshes.push_back(submeshMoveToBack);
         }
     }
 }

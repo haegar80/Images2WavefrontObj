@@ -138,13 +138,18 @@ void TextureCreator::SaveTextures(Mesh* p_mesh)
         filePathString << "texture_" << tempTextureNumber << ".jpg";
         QFileInfo textureFile(texturetDirPath, filePathString.str().c_str());
 
-        bool successful = tempTexture.second.save(textureFile.absoluteFilePath(), "JPG");
+        // Directly call of toStdString() fails
+        QString& absoluteFilePath = textureFile.absoluteFilePath();
+        QByteArray tmp = absoluteFilePath.toLocal8Bit();
+        std::string absoluteFilePathString = std::string(tmp.constData());
+        bool successful = tempTexture.second.save(absoluteFilePathString.c_str(), "JPG");
         
         if (successful)
         {
-            m_tempTextures.emplace(std::make_pair(tempTexture.first, filePathString.str().c_str()));
+            m_texturePaths.insert(std::make_pair(tempTexture.first, absoluteFilePathString));
         }
 
         tempTextureNumber++;
     }
+    
 }

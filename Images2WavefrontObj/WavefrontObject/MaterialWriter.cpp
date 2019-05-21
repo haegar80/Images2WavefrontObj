@@ -46,7 +46,7 @@ void MaterialWriter::WriteMaterial(std::ofstream& p_mtlFile, const Material* p_m
     if (0 != materialName.compare("default"))
     {
         p_mtlFile << "newmtl " << materialName.c_str() << "\n";
-        p_mtlFile << "Ns " << p_material->getSpecularExponent();
+        p_mtlFile << "Ns " << p_material->getSpecularExponent() << "\n";
 
         MaterialRGBValue rgbValue = p_material->getAmbientColor();
         p_mtlFile << "Ka " << rgbValue.R << " " << rgbValue.G << " " << rgbValue.B << "\n";
@@ -57,8 +57,9 @@ void MaterialWriter::WriteMaterial(std::ofstream& p_mtlFile, const Material* p_m
         rgbValue = p_material->getSpecularColor();
         p_mtlFile << "Ks " << rgbValue.R << " " << rgbValue.G << " " << rgbValue.B << "\n";
 
-        p_mtlFile << "map_Ka" << p_material->getAmbientTexturePath().c_str() << "\n";
-        p_mtlFile << "map_Kd" << p_material->getDiffuseTexturePath().c_str() << "\n";
-        p_mtlFile << "map_Ks" << p_material->getSpecularTexturePath().c_str() << "\n";
+        p_mtlFile << "map_Ka " << p_material->getAmbientTexturePath().c_str() << "\n";
+        p_mtlFile << "map_Kd " << p_material->getDiffuseTexturePath().c_str() << "\n";
+        p_mtlFile << "map_Ks " << p_material->getSpecularTexturePath().c_str() << "\n";
+        p_mtlFile << "\n";
     }
 }

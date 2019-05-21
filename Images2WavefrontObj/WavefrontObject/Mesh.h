@@ -30,6 +30,7 @@ public:
     void AddFace(Material* p_material);
     void MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material);
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
+    void DeleteEmptySubmesh(int p_submeshVectorIndex);
 
     std::string getName() const
     {
