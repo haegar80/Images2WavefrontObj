@@ -126,27 +126,27 @@ void TextureCreator::CreateTempTextures(FaceKey p_faceKey, SEdgePixels p_pixelsF
 
 void TextureCreator::SaveTextures(Mesh* p_mesh)
 {
-    QDir texturetDirPath(QString("textures"));
-    if (!texturetDirPath.exists()) {
-        texturetDirPath.mkdir(".");
+    QDir textureDirPath(QString("textures"));
+    if (!textureDirPath.exists()) {
+        textureDirPath.mkdir(".");
     }
 
     int tempTextureNumber = 1;
     for (std::pair<FaceKey, QImage> tempTexture : m_tempTextures)
     {
-        std::stringstream filePathString;
-        filePathString << "texture_" << tempTextureNumber << ".jpg";
-        QFileInfo textureFile(texturetDirPath, filePathString.str().c_str());
+        std::stringstream filePathStringStream;
+        filePathStringStream << "texture_" << tempTextureNumber << ".jpg";
+        QFileInfo textureFile(textureDirPath, filePathStringStream.str().c_str());
 
         // Directly call of toStdString() fails
-        QString& absoluteFilePath = textureFile.absoluteFilePath();
-        QByteArray tmp = absoluteFilePath.toLocal8Bit();
-        std::string absoluteFilePathString = std::string(tmp.constData());
-        bool successful = tempTexture.second.save(absoluteFilePathString.c_str(), "JPG");
+        QString& filePath = textureFile.filePath();
+        QByteArray tmp = filePath.toLocal8Bit();
+        std::string filePathString = std::string(tmp.constData());
+        bool successful = tempTexture.second.save(filePathString.c_str(), "JPG");
         
         if (successful)
         {
-            m_texturePaths.insert(std::make_pair(tempTexture.first, absoluteFilePathString));
+            m_texturePaths.insert(std::make_pair(tempTexture.first, filePathString));
         }
 
         tempTextureNumber++;
