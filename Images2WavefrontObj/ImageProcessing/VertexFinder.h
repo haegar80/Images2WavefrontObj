@@ -17,7 +17,7 @@ public:
     VertexFinder(VertexFinder&&) = default;
     VertexFinder& operator=(VertexFinder&&) = default;
 
-    std::vector<std::unique_ptr<Mesh>>& FindVerticesFromGradientImage(const QImage& p_gradientImage);
+    std::vector<std::unique_ptr<Mesh>>& FindVerticesFromGradientImage(const QImage& p_gradientImage, int p_minimumGradient);
 
 private:
     enum EVertexAlreadyAddedResult 
@@ -42,13 +42,13 @@ private:
     };
 
     static constexpr int ImageBorderPixels = 2;
-    static constexpr int MinimumGradient = 50;
-    static constexpr int MinimumNumberOfPixels = 3;
+    static constexpr int MinimumNumberOfPixels = 10;
     static constexpr int FaceIndexStartPixels = 0;
     static constexpr int FaceIndexEndPixels = 2;
 
     std::vector<std::unique_ptr<Mesh>> m_meshes;
     Material m_dummyMaterial{"DummyMaterial"};
+    int m_minimumGradient{ 0 };
     int m_nextCheckY{ 0 };
     std::map<int, int> m_highGradientRangesX{};
     std::map<int, int> m_highGradientRangesY{};

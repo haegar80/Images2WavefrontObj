@@ -6,17 +6,18 @@ VertexFinder::VertexFinder()
 {
 }
 
-std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(const QImage& p_gradientImage)
+std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(const QImage& p_gradientImage, int p_minimumGradient)
 {
+    m_minimumGradient = p_minimumGradient;
     m_highGradientRangesX.clear();
     m_highGradientRangesY.clear();
 
-    for (int xIndex = ImageBorderPixels; xIndex < (p_gradientImage.width() - ImageBorderPixels); xIndex += 2)
+    for (int xIndex = ImageBorderPixels; xIndex < (p_gradientImage.width() - ImageBorderPixels); xIndex += 5)
     {
-        for (int yIndex = ImageBorderPixels; yIndex < (p_gradientImage.height() - ImageBorderPixels); yIndex += 2)
+        for (int yIndex = ImageBorderPixels; yIndex < (p_gradientImage.height() - ImageBorderPixels); yIndex += 5)
         {
             int imagePixelGray = GetGrayPixel(p_gradientImage, xIndex, yIndex);
-            if (imagePixelGray > 0)
+            if (imagePixelGray > m_minimumGradient)
             {
                 bool nextVertexFound = ProcessEdge(p_gradientImage, xIndex, yIndex);
 
@@ -60,6 +61,10 @@ bool VertexFinder::ProcessEdge(const QImage& p_gradientImage, int p_startX, int 
         edgePixels.endY = yEndIndex;
         AddVerticesAndFace(edgePixels);
     }
+    else
+    {
+        m_nextCheckY = ImageBorderPixels;
+    }
 
     return nextVertexFound;
 }
@@ -69,7 +74,7 @@ int VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX
     int xEndIndex = p_nextX;
 
     int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
-    if (imagePixelGray > MinimumGradient)
+    if (imagePixelGray > m_minimumGradient)
     {
         int xEndIndexNew = xEndIndex + 1;
         bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
@@ -100,7 +105,7 @@ int VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX
     int yEndIndex = p_nextY;
 
     int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
-    if (imagePixelGray > MinimumGradient)
+    if (imagePixelGray > m_minimumGradient)
     {
         int yEndIndexNew = yEndIndex + 1;
         bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
@@ -206,7 +211,10 @@ void VertexFinder::AddVerticesAndFace(SEdgePixels p_edgePixels)
             currentMesh->AddFaceIndices(faceIndices[i], faceIndices[i]);
         }
 
-        m_nextCheckY = p_edgePixels.endY;
+        if (p_edgePixels.endY > m_nextCheckY)
+        {
+            m_nextCheckY = p_edgePixels.endY;
+        }        
     }
 }
 

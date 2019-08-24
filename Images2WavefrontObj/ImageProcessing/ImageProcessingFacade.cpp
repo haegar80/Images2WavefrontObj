@@ -12,8 +12,8 @@ QImage ImageProcessingFacade::CombineImages(const QStringList& p_images)
 
 QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
 {
-    QImage gradientImage = m_edgeDetector.DetectEdges(p_image);
-    std::vector<std::unique_ptr<Mesh>>& meshes = m_vertexFinder.FindVerticesFromGradientImage(gradientImage);
+    QImage gradientImage = m_edgeDetector.DetectEdges(p_image, MinimumGradient);
+    std::vector<std::unique_ptr<Mesh>>& meshes = m_vertexFinder.FindVerticesFromGradientImage(gradientImage, MinimumGradient);
 
     m_materialManager.CreateDefaultMaterial();
 
