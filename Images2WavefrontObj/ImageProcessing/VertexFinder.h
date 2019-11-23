@@ -55,6 +55,11 @@ private:
     std::pair<int, int> m_lastFoundAlreadyAddedVertex{};
 
     bool ProcessEdge(const QImage& p_gradientImage, int p_startX, int p_startY);
+    bool GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY, SEdgePixels& p_edgePixels);
+    bool GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY, SEdgePixels& p_edgePixels);
+    int GetSpaceBetweenEdges(const QImage& p_gradientImage, int p_startX, int p_startY, bool p_axisX);
+    int GetLowGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY);
+    int GetLowGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     int GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     int GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     bool HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height);

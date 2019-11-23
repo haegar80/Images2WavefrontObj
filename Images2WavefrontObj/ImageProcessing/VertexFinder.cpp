@@ -35,100 +35,224 @@ std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(
 bool VertexFinder::ProcessEdge(const QImage& p_gradientImage, int p_startX, int p_startY)
 {
     bool nextVertexFound = false;
+    
+    SEdgePixels edgePixels;
+    edgePixels.startX = p_startX;
+    edgePixels.endX = 0;
+    edgePixels.startY = p_startY;
+    edgePixels.endY = 0;
 
-    int xEndIndex = GetHighGradientEndX(p_gradientImage, p_startX, p_startY);
-    xEndIndex -= 1;
-
-    int yEndIndex = 0;
-
-    if ((xEndIndex - p_startX) >= MinimumNumberOfPixels)
+    bool edgeXFound = GetEdgeX(p_gradientImage, p_startX, p_startY, edgePixels);
+    bool edgeYFound = false;
+    if (!edgeXFound)
     {
-        yEndIndex = GetHighGradientEndY(p_gradientImage, p_startX, p_startY);
-        yEndIndex -= 1;
+        edgeYFound = GetEdgeY(p_gradientImage, p_startX, p_startY, edgePixels);
+    }
 
-        if ((yEndIndex - p_startY) >= MinimumNumberOfPixels)
+    if (edgeXFound || edgeYFound)
+    {
+        bool findSpaceInXAxis = !edgeXFound;
+        int numberOfSpacePixelsFound = GetSpaceBetweenEdges(p_gradientImage, (p_startX + 1), (p_startY + 1), findSpaceInXAxis);
+        if (numberOfSpacePixelsFound  >= MinimumNumberOfPixels)
         {
-            nextVertexFound = true;
-        }
-    }
+            int safeX = edgePixels.endX;
+            int safeY = edgePixels.endY;
 
-    if (nextVertexFound)
-    {
-        SEdgePixels edgePixels;
-        edgePixels.startX = p_startX;
-        edgePixels.endX = xEndIndex;
-        edgePixels.startY = p_startY;
-        edgePixels.endY = yEndIndex;
-        AddVerticesAndFace(edgePixels);
-    }
-    else
-    {
-        m_nextCheckY = ImageBorderPixels;
+            int startXForSecondEdge = p_startX;
+            int startYForSecondEdge = p_startY;
+
+            if (edgeXFound)
+            {
+                startYForSecondEdge = startYForSecondEdge + numberOfSpacePixelsFound + 1;
+                safeY = startYForSecondEdge;
+                edgeXFound = GetEdgeX(p_gradientImage, startXForSecondEdge, startYForSecondEdge, edgePixels);
+            }
+            else
+            {
+                startXForSecondEdge = startXForSecondEdge + numberOfSpacePixelsFound + 1;
+                safeX = startXForSecondEdge;
+                edgeYFound = GetEdgeY(p_gradientImage, startXForSecondEdge, startYForSecondEdge, edgePixels);
+            }
+
+            if (edgeXFound || edgeYFound)
+            {
+                nextVertexFound = true;
+
+                if (edgePixels.endX > safeX)
+                {
+                    edgePixels.endX = safeX;
+                }
+                else if (edgePixels.endY > safeY)
+                {
+                    edgePixels.endY = safeY;
+                }
+
+                AddVerticesAndFace(edgePixels);
+            }
+        }
     }
 
     return nextVertexFound;
 }
 
-int VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+bool VertexFinder::GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY, SEdgePixels& p_edgePixels)
 {
-    int xEndIndex = p_nextX;
+    bool edgeXFound = false;
+
+    int xEndIndex = GetHighGradientEndX(p_gradientImage, (p_startX + 1), p_startY);
+    if ((xEndIndex - p_startX) >= MinimumNumberOfPixels)
+    {
+        p_edgePixels.endX = --xEndIndex;
+        p_edgePixels.endY = p_startY;
+        edgeXFound = true;
+    }
+
+    return edgeXFound;
+}
+
+bool VertexFinder::GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY, SEdgePixels& p_edgePixels)
+{
+    bool edgeYFound = false;
+
+    int yEndIndex = GetHighGradientEndY(p_gradientImage, p_startX, (p_startY + 1));
+    if ((yEndIndex - p_startY) >= MinimumNumberOfPixels)
+    {
+        p_edgePixels.endX = p_startX;
+        p_edgePixels.endY = --yEndIndex;
+        edgeYFound = true;
+    }
+
+    return edgeYFound;
+}
+
+int VertexFinder::GetSpaceBetweenEdges(const QImage& p_gradientImage, int p_startX, int p_startY, bool p_axisX)
+{
+    int numberOfSpacePixelsFound = 0;
+   
+    if (p_axisX)
+    {
+        int xEndIndex = GetLowGradientEndX(p_gradientImage, (p_startX + 1), p_startY);
+        numberOfSpacePixelsFound = xEndIndex - p_startX - 1;
+    }
+    else
+    {
+        int yEndIndex = GetLowGradientEndY(p_gradientImage, p_startX, (p_startY + 1));
+        numberOfSpacePixelsFound = yEndIndex - p_startY - 1;
+    }
+
+    return numberOfSpacePixelsFound;
+}
+
+int VertexFinder::GetLowGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+{
+    int xEndIndexNew = p_nextX;
 
     int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
-    if (imagePixelGray > m_minimumGradient)
+    if (imagePixelGray < m_minimumGradient)
     {
-        int xEndIndexNew = xEndIndex + 1;
+        bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
+
+        if (!hasPixelReachedOutOfBorder)
+        {
+            xEndIndexNew = GetLowGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY - 1));
+
+            if (p_nextX == (xEndIndexNew - 1))
+            {
+                xEndIndexNew = GetLowGradientEndX(p_gradientImage, (p_nextX + 1), p_nextY);
+
+                if (p_nextX == (xEndIndexNew - 1))
+                {
+                    xEndIndexNew = GetLowGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
+                }
+            }
+        }
+    }
+
+    return xEndIndexNew;
+}
+
+int VertexFinder::GetLowGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+{
+    int yEndIndexNew = p_nextY;
+
+    int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
+    if (imagePixelGray < m_minimumGradient)
+    {
+        bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
+
+        if (!hasPixelReachedOutOfBorder)
+        {
+            yEndIndexNew = GetLowGradientEndY(p_gradientImage, (p_nextX - 1), (p_nextY + 1));
+
+            if (p_nextY == (yEndIndexNew - 1))
+            {
+                yEndIndexNew = GetLowGradientEndY(p_gradientImage, p_nextX, (p_nextY + 1));
+
+                if (p_nextY == (yEndIndexNew - 1))
+                {
+                    yEndIndexNew = GetLowGradientEndY(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
+                }
+            }
+        }
+    }
+
+    return yEndIndexNew;
+}
+
+int VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+{
+    int xEndIndexNew = p_nextX;
+
+    int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
+    if (imagePixelGray >= m_minimumGradient)
+    {
         bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
 
         if (!hasPixelReachedOutOfBorder)
         {
             xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY - 1));
 
-            if (xEndIndex == (xEndIndexNew - 1))
+            if (p_nextX == (xEndIndexNew - 1))
             {
                 xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), p_nextY);
 
-                if (xEndIndex == (xEndIndexNew - 1))
+                if (p_nextX == (xEndIndexNew - 1))
                 {
                     xEndIndexNew = GetHighGradientEndX(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
                 }
             }
         }
-
-        xEndIndex = xEndIndexNew;
     }
 
-    return xEndIndex;
+    return xEndIndexNew;
 }
 
 int VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY)
 {
-    int yEndIndex = p_nextY;
+    int yEndIndexNew = p_nextY;
 
     int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
-    if (imagePixelGray > m_minimumGradient)
+    if (imagePixelGray >= m_minimumGradient)
     {
-        int yEndIndexNew = yEndIndex + 1;
         bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
 
         if (!hasPixelReachedOutOfBorder)
         {
             yEndIndexNew = GetHighGradientEndY(p_gradientImage, (p_nextX - 1), (p_nextY + 1));
 
-            if (yEndIndex == (yEndIndexNew - 1))
+            if (p_nextY == (yEndIndexNew - 1))
             {
                 yEndIndexNew = GetHighGradientEndY(p_gradientImage, p_nextX, (p_nextY + 1));
 
-                if (yEndIndex == (yEndIndexNew - 1))
+                if (p_nextY == (yEndIndexNew - 1))
                 {
                     yEndIndexNew = GetHighGradientEndY(p_gradientImage, (p_nextX + 1), (p_nextY + 1));
                 }
             }
         }
-
-        yEndIndex = yEndIndexNew;
     }
 
-    return yEndIndex;
+    return yEndIndexNew;
 }
 
 bool VertexFinder::HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height)
