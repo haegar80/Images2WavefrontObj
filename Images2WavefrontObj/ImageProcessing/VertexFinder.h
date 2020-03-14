@@ -27,12 +27,6 @@ private:
         FaceAvailable = 2
     };
 
-    struct SAlreadyAddedVertexData
-    {
-        Mesh* mesh;
-        int faceIndex;
-    };
-
     struct SEdgePixels
     {
         int startX;
@@ -42,41 +36,39 @@ private:
     };
 
     static constexpr int ImageBorderPixels = 2;
-    static constexpr int MinimumNumberOfPixels = 10;
-    static constexpr int FaceIndexStartPixels = 0;
-    static constexpr int FaceIndexEndPixels = 2;
+    static constexpr int MinimumNumberOfPixels = 100;
+    static constexpr int MinimumNumberOfEdgePixels = 1;
+    static constexpr int NumberOfCheckingNeighbouredPixels = 10;
 
     std::vector<std::unique_ptr<Mesh>> m_meshes;
     Material m_dummyMaterial{"DummyMaterial"};
     int m_minimumGradient{ 0 };
-    int m_nextCheckY{ 0 };
-    std::map<int, int> m_highGradientRangesX{};
-    std::map<int, int> m_highGradientRangesY{};
-    std::pair<int, int> m_lastFoundAlreadyAddedVertex{};
+    std::pair<int, int> m_lastFoundAlreadyAddedVertex;
+    SEdgePixels m_lastFoundAlreadyAddedEdge;
+    std::vector<SEdgePixels> m_addedEdges;
 
-    bool ProcessEdge(const QImage& p_gradientImage, int p_startX, int p_startY);
-    bool GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY, SEdgePixels& p_edgePixels);
-    bool GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY, SEdgePixels& p_edgePixels);
-    int GetSpaceBetweenEdges(const QImage& p_gradientImage, int p_startX, int p_startY, bool p_axisX);
-    int GetLowGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY);
-    int GetLowGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
-    int GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY);
-    int GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
+    void ProcessEdge(const QImage& p_gradientImage, int p_startX, int p_startY);
+    bool GetEdges(const QImage& p_gradientImage, int p_startX, int p_startY, std::vector<SEdgePixels>& p_edgePixelsVector);
+    SEdgePixels GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY);
+    SEdgePixels GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY);
+    VertexFinder::SEdgePixels GetLowGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY);
+    VertexFinder::SEdgePixels GetLowGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
+    SEdgePixels GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY);
+    SEdgePixels GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     bool HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height);
     int GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY);
-    void AddVerticesAndFace(SEdgePixels p_edgePixels);
+    void AddVerticesAndFace(std::vector<SEdgePixels>& p_edgePixelsVector);
     int AddVertices(Mesh* p_mesh, SEdgePixels p_edgePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
-    bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY, bool p_isNewVertexBeginningFace);
-    void HandleAlreadyAddedVertex(SEdgePixels p_edgePixels, bool p_isNewVertexBeginningFace);
+    bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY);
     std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(SEdgePixels p_facePixels);
 
-    Mesh* GetCurrentMesh(EVertexAlreadyAddedResult p_vertexAlreadyAddedResultStart, EVertexAlreadyAddedResult p_vertexAlreadyAddedResultEnd);
-    Mesh* GetMeshBasedOnEdgeX(int p_startX, int p_endX);
-    Mesh* GetMeshBasedOnEdgeY(int p_startY, int p_endY);
-    bool IsEdgeFoundInMesh(const Mesh* p_mesh, int p_startEdge, int p_endEdge, bool p_isXAxis);
-    void MergeMeshesIfEdgesNotInSameMesh(SEdgePixels p_edgePixels);
+    Mesh* GetMeshBasedOnVertex(int p_pixelX, int p_pixelY);
+    Mesh* GetMeshBasedOnEdge(SEdgePixels p_edgePixels);
+    bool IsEdgeFoundInMesh(const Mesh* p_mesh, SEdgePixels p_edgePixels);
+    void MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels);
     void MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh);
     void DeleteMesh(Mesh* p_mesh);
-    SAlreadyAddedVertexData GetInfoFromLastCheckedVertex();
+
+    int GetAlreadyAddedVertexIndex(Mesh* p_currentMesh, int p_pixelX, int p_pixelY);
 };
 

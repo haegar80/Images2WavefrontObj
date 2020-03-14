@@ -21,7 +21,7 @@ public:
     QImage Generate3dModel(const QImage& p_image);
 
 private:
-    static constexpr int MinimumGradient = 20;
+    static constexpr int MinimumGradient = 30;
 
     ImageCombiner m_imageCombiner{};
     EdgeDetector m_edgeDetector{};
