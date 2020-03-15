@@ -75,6 +75,33 @@ void Mesh::DeleteEmptySubmesh(int p_submeshVectorIndex)
     }
 }
 
+void Mesh::Merge(Mesh* p_mesh)
+{
+    int numberOfVertices = GetVertices().size();
+    std::vector<ObjVertexCoords> verticesToMerge = p_mesh->GetVertices();
+    for (ObjVertexCoords vertexToMerge : verticesToMerge)
+    {
+        AddVertex(vertexToMerge.X, vertexToMerge.Y, vertexToMerge.Z);
+    }
+
+    std::vector<SubMesh*> submeshesToMerge = p_mesh->GetSubmeshes();
+    for (SubMesh* submeshToMerge : submeshesToMerge)
+    {
+        Material* materialToMerge = submeshToMerge->GetMaterial();
+        std::vector<ObjFace> facesToMerge = submeshToMerge->GetFaces();
+        for (ObjFace faceToMerge : facesToMerge)
+        {
+            AddFace(materialToMerge);
+            std::vector<ObjFaceIndices> faceIndicesToMerge = faceToMerge.Indices;
+            for (ObjFaceIndices faceIndexToMerge : faceIndicesToMerge)
+            {
+                int faceIndexToStore = faceIndexToMerge.VertexIndex + numberOfVertices;
+                AddFaceIndices(faceIndexToStore, faceIndexToStore);
+            }
+        }
+    }
+}
+
 void Mesh::FindAndUpdateSubmesh(Material* p_material)
 {
     if (p_material != m_lastUsedMaterial)

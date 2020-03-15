@@ -66,7 +66,6 @@ private:
     Mesh* GetMeshBasedOnEdge(SEdgePixels p_edgePixels);
     bool IsEdgeFoundInMesh(const Mesh* p_mesh, SEdgePixels p_edgePixels);
     void MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels);
-    void MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh);
     void DeleteMesh(Mesh* p_mesh);
 
     int GetAlreadyAddedVertexIndex(Mesh* p_currentMesh, int p_pixelX, int p_pixelY);

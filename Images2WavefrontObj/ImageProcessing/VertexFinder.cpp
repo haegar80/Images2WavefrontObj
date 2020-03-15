@@ -553,37 +553,9 @@ void VertexFinder::MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels)
 
     if ((nullptr != meshStartVertex) && (nullptr != meshEndVertex) && (meshStartVertex != meshEndVertex))
     {
-        MergeMeshes(meshStartVertex, meshEndVertex);
+        meshStartVertex->Merge(meshEndVertex);
+        DeleteMesh(meshEndVertex);
     }
-}
-
-void VertexFinder::MergeMeshes(Mesh* p_firstMesh, Mesh* p_secondMesh)
-{
-    int numberOfVerticesFirstMesh = p_firstMesh->GetVertices().size();
-    std::vector<ObjVertexCoords> vertices = p_secondMesh->GetVertices();
-    for (ObjVertexCoords vertex : vertices)
-    {
-        p_firstMesh->AddVertex(vertex.X, vertex.Y, vertex.Z);
-    }
-
-    std::vector<SubMesh*> submeshes = p_secondMesh->GetSubmeshes();
-    for (SubMesh* submesh : submeshes)
-    {
-        Material* material = submesh->GetMaterial();
-        std::vector<ObjFace> faces = submesh->GetFaces();
-        for (ObjFace face : faces)
-        {
-            p_firstMesh->AddFace(material);
-            std::vector<ObjFaceIndices> faceIndices = face.Indices;
-            for (ObjFaceIndices faceIndex : faceIndices)
-            {
-                int faceIndexToStore = faceIndex.VertexIndex + numberOfVerticesFirstMesh;
-                p_firstMesh->AddFaceIndices(faceIndexToStore, faceIndexToStore);
-            }
-        }
-    }
-
-    DeleteMesh(p_secondMesh);
 }
 
 void VertexFinder::DeleteMesh(Mesh* p_mesh)

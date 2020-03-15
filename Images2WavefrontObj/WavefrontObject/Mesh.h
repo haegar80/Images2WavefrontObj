@@ -31,6 +31,7 @@ public:
     void MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material);
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
     void DeleteEmptySubmesh(int p_submeshVectorIndex);
+    void Merge(Mesh* p_mesh);
 
     std::string getName() const
     {
@@ -64,8 +65,5 @@ private:
     Material* m_lastUsedMaterial{ nullptr };
 
     void FindAndUpdateSubmesh(Material* p_material);
-    void AddVertexFromFaceIndex(unsigned short p_vertexIndex);
-    void AddTextureFromFaceIndex(unsigned short p_textureIndex);
-    void AddNormalFromFaceIndex(unsigned short p_normalIndex);
 };
 
