@@ -1,5 +1,4 @@
 #include "VertexFinder.h"
-#include "../WavefrontObject/Mesh.h"
 #include <QImage>
 
 VertexFinder::VertexFinder()
@@ -102,7 +101,7 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
     return edgeFound;
 }
 
-VertexFinder::SEdgePixels VertexFinder::GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY)
+SEdgePixels VertexFinder::GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY)
 {
     SEdgePixels updatedEdgePixels = GetHighGradientEndX(p_gradientImage, (p_startX + 1), p_startY);
     updatedEdgePixels.startX = p_startX;
@@ -112,7 +111,7 @@ VertexFinder::SEdgePixels VertexFinder::GetEdgeX(const QImage& p_gradientImage, 
     return updatedEdgePixels;
 }
 
-VertexFinder::SEdgePixels VertexFinder::GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY)
+SEdgePixels VertexFinder::GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY)
 {
     SEdgePixels updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startX, (p_startY + 1));
     updatedEdgePixels.startX = p_startX;
@@ -122,7 +121,7 @@ VertexFinder::SEdgePixels VertexFinder::GetEdgeY(const QImage& p_gradientImage, 
     return updatedEdgePixels;
 }
 
-VertexFinder::SEdgePixels VertexFinder::GetLowGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+SEdgePixels VertexFinder::GetLowGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
 {
     SEdgePixels updatedEdgePixels;
     updatedEdgePixels.endX = p_nextX;
@@ -152,7 +151,7 @@ VertexFinder::SEdgePixels VertexFinder::GetLowGradientEndX(const QImage& p_gradi
     return updatedEdgePixels;
 }
 
-VertexFinder::SEdgePixels VertexFinder::GetLowGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+SEdgePixels VertexFinder::GetLowGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY)
 {
     SEdgePixels updatedEdgePixels;
     updatedEdgePixels.endX = p_nextX;
@@ -182,7 +181,7 @@ VertexFinder::SEdgePixels VertexFinder::GetLowGradientEndY(const QImage& p_gradi
     return updatedEdgePixels;
 }
 
-VertexFinder::SEdgePixels VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+SEdgePixels VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int p_nextX, int p_nextY)
 {
     SEdgePixels updatedEdgePixels;
     updatedEdgePixels.endX = p_nextX;
@@ -212,7 +211,7 @@ VertexFinder::SEdgePixels VertexFinder::GetHighGradientEndX(const QImage& p_grad
     return updatedEdgePixels;
 }
 
-VertexFinder::SEdgePixels VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY)
+SEdgePixels VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY)
 {
     SEdgePixels updatedEdgePixels;
     updatedEdgePixels.endX = p_nextX;
@@ -467,13 +466,14 @@ Mesh* VertexFinder::GetMeshBasedOnVertex(int p_pixelX, int p_pixelY)
 
     for (std::unique_ptr<Mesh>& mesh : m_meshes)
     {
-        std::vector<ObjVertexCoords> vertices = mesh.get()->GetVertices();
-        auto itX = std::find_if(vertices.begin(), vertices.end(), [p_pixelX, p_pixelY](ObjVertexCoords vertex) { return (p_pixelX == vertex.X); });
-        auto itY = std::find_if(vertices.begin(), vertices.end(), [p_pixelX, p_pixelY](ObjVertexCoords vertex) { return (p_pixelY == vertex.Y); });
-        if ((vertices.end() != itX) && (vertices.end() != itY))
+        if (mesh)
         {
-            foundMesh = mesh.get();
-            break;
+            bool isVertexFoundInMesh = mesh.get()->IsVertexFound(p_pixelX, p_pixelY);
+            if (isVertexFoundInMesh)
+            {
+                foundMesh = mesh.get();
+                break;
+            }
         }
     }
 
@@ -487,7 +487,10 @@ Mesh* VertexFinder::GetMeshBasedOnEdge(SEdgePixels p_edgePixels)
 
     for (std::unique_ptr<Mesh>& mesh : m_meshes)
     {
-        meshFound = IsEdgeFoundInMesh(mesh.get(), p_edgePixels);
+        if (mesh)
+        {
+            meshFound = mesh.get()->IsEdgeFound(p_edgePixels);
+        }
 
         if (meshFound)
         {
@@ -497,53 +500,6 @@ Mesh* VertexFinder::GetMeshBasedOnEdge(SEdgePixels p_edgePixels)
     }
 
     return foundMesh;
-}
-
-bool VertexFinder::IsEdgeFoundInMesh(const Mesh* p_mesh, SEdgePixels p_edgePixels)
-{
-    bool edgeFound = false;
-
-    std::vector<ObjVertexCoords> vertices = p_mesh->GetVertices();
-    bool startEdgeFound = false;
-    bool endEdgeFound = false;
-
-    std::vector<SubMesh*> submeshes = p_mesh->GetSubmeshes();
-    for (SubMesh* submesh : submeshes)
-    {
-        std::vector<ObjFace> faces = submesh->GetFaces();
-        for (ObjFace face : faces)
-        {
-            std::vector<ObjFaceIndices> faceIndices = face.Indices;
-            for (ObjFaceIndices faceIndex : faceIndices)
-            {
-                int pixelX = vertices.at(faceIndex.VertexIndex - 1).X;
-                int pixelY = vertices.at(faceIndex.VertexIndex - 1).Y;
-
-                if ((p_edgePixels.startX == pixelX) && (p_edgePixels.startY == pixelY))
-                {
-                    startEdgeFound = true;
-                }
-                else if ((p_edgePixels.endX == pixelX) && (p_edgePixels.endY == pixelY))
-                {
-                    endEdgeFound = true;
-                }
-            }
-
-            if (startEdgeFound && endEdgeFound)
-            {
-                edgeFound = true;
-                break;
-            }
-        }
-
-        if (startEdgeFound && endEdgeFound)
-        {
-            edgeFound = true;
-            break;
-        }
-    }
-
-    return edgeFound;
 }
 
 void VertexFinder::MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels)

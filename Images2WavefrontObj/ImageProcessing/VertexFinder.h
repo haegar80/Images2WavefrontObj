@@ -1,10 +1,10 @@
 #pragma once
 
 #include "../WavefrontObject/Material.h"
+#include "../WavefrontObject/Mesh.h"
 #include <memory>
 #include <vector>
 
-class Mesh;
 class QImage;
 
 class VertexFinder
@@ -25,14 +25,6 @@ private:
         VertexNew = 0,
         SurfaceAvailable = 1,
         FaceAvailable = 2
-    };
-
-    struct SEdgePixels
-    {
-        int startX;
-        int endX;
-        int startY;
-        int endY;
     };
 
     static constexpr int ImageBorderPixels = 2;
@@ -64,7 +56,6 @@ private:
 
     Mesh* GetMeshBasedOnVertex(int p_pixelX, int p_pixelY);
     Mesh* GetMeshBasedOnEdge(SEdgePixels p_edgePixels);
-    bool IsEdgeFoundInMesh(const Mesh* p_mesh, SEdgePixels p_edgePixels);
     void MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels);
     void DeleteMesh(Mesh* p_mesh);
 

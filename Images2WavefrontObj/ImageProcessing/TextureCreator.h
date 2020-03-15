@@ -1,19 +1,11 @@
 #pragma once
 
+#include "../WavefrontObject/Mesh.h"
 #include <QImage>
 
-class Mesh;
 struct ObjFace;
 
 typedef std::pair<int, int> FaceKey;
-
-struct SEdgePixels
-{
-    int startX;
-    int endX;
-    int startY;
-    int endY;
-};
 
 class TextureCreator
 {

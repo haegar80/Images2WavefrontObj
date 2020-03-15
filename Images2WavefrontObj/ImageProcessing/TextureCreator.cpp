@@ -1,5 +1,4 @@
 #include "TextureCreator.h"
-#include "../WavefrontObject/Mesh.h"
 #include "../WavefrontObject/SubMesh.h"
 #include <sstream>
 #include <QDir>

@@ -17,6 +17,14 @@ struct ObjTextureCoords
 	float V;
 };
 
+struct SEdgePixels
+{
+    int startX;
+    int endX;
+    int startY;
+    int endY;
+};
+
 class Mesh
 {
 public:
@@ -32,6 +40,8 @@ public:
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
     void DeleteEmptySubmesh(int p_submeshVectorIndex);
     void Merge(Mesh* p_mesh);
+    bool IsEdgeFound(SEdgePixels p_edgePixels);
+    bool IsVertexFound(int p_pixelX, int p_pixelY);
 
     std::string getName() const
     {

@@ -102,6 +102,68 @@ void Mesh::Merge(Mesh* p_mesh)
     }
 }
 
+bool Mesh::IsEdgeFound(SEdgePixels p_edgePixels)
+{
+    bool edgeFound = false;
+
+    std::vector<ObjVertexCoords> vertices = GetVertices();
+    bool startEdgeFound = false;
+    bool endEdgeFound = false;
+
+    std::vector<SubMesh*> submeshes = GetSubmeshes();
+    for (SubMesh* submesh : submeshes)
+    {
+        std::vector<ObjFace> faces = submesh->GetFaces();
+        for (ObjFace face : faces)
+        {
+            std::vector<ObjFaceIndices> faceIndices = face.Indices;
+            for (ObjFaceIndices faceIndex : faceIndices)
+            {
+                int pixelX = vertices.at(faceIndex.VertexIndex - 1).X;
+                int pixelY = vertices.at(faceIndex.VertexIndex - 1).Y;
+
+                if ((p_edgePixels.startX == pixelX) && (p_edgePixels.startY == pixelY))
+                {
+                    startEdgeFound = true;
+                }
+                else if ((p_edgePixels.endX == pixelX) && (p_edgePixels.endY == pixelY))
+                {
+                    endEdgeFound = true;
+                }
+            }
+
+            if (startEdgeFound && endEdgeFound)
+            {
+                edgeFound = true;
+                break;
+            }
+        }
+
+        if (startEdgeFound && endEdgeFound)
+        {
+            edgeFound = true;
+            break;
+        }
+    }
+
+    return edgeFound;
+}
+
+bool Mesh::IsVertexFound(int p_pixelX, int p_pixelY)
+{
+    bool vertexFound = false;
+
+    std::vector<ObjVertexCoords> vertices = GetVertices();
+    auto itX = std::find_if(vertices.begin(), vertices.end(), [p_pixelX, p_pixelY](ObjVertexCoords vertex) { return (p_pixelX == vertex.X); });
+    auto itY = std::find_if(vertices.begin(), vertices.end(), [p_pixelX, p_pixelY](ObjVertexCoords vertex) { return (p_pixelY == vertex.Y); });
+    if ((vertices.end() != itX) && (vertices.end() != itY))
+    {
+        vertexFound = true;
+    }
+
+    return vertexFound;
+}
+
 void Mesh::FindAndUpdateSubmesh(Material* p_material)
 {
     if (p_material != m_lastUsedMaterial)
