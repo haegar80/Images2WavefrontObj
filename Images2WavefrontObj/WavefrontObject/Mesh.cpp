@@ -18,7 +18,7 @@ Mesh::~Mesh()
     }
 }
 
-void Mesh::AddVertex(float p_x, float p_y, float p_z)
+void Mesh::AddVertex(int p_x, int p_y, int p_z)
 {
     ObjVertexCoords vertex;
     vertex.X = p_x;
@@ -27,7 +27,7 @@ void Mesh::AddVertex(float p_x, float p_y, float p_z)
     m_vertices.push_back(vertex);
 }
 
-void Mesh::AddNormal(float p_x, float p_y, float p_z)
+void Mesh::AddNormal(int p_x, int p_y, int p_z)
 {
     ObjVertexCoords normal;
     normal.X = p_x;
@@ -36,12 +36,21 @@ void Mesh::AddNormal(float p_x, float p_y, float p_z)
     m_normals.push_back(normal);
 }
 
-void Mesh::AddTexture(float p_u, float p_v)
+void Mesh::AddTexture(int p_u, int p_v)
 {
     ObjTextureCoords texture;
     texture.U = p_u;
     texture.V = p_v;
     m_textures.push_back(texture);
+}
+
+void Mesh::UpdateVertex(int p_vertexIndex, int p_x, int p_y, int p_z)
+{
+    ObjVertexCoords vertex;
+    vertex.X = p_x;
+    vertex.Y = p_y;
+    vertex.Z = p_z;
+    m_vertices[p_vertexIndex] = vertex;
 }
 
 void Mesh::AddFace(Material* p_material)

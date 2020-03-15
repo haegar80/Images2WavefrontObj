@@ -124,6 +124,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImageProcessing\DepthCalculator.cpp" />
     <ClCompile Include="ImageProcessing\EdgeDetector.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_Images2WavefrontObj.cpp" />
     <ClCompile Include="GeneratedFiles\Release\moc_Images2WavefrontObj.cpp">
@@ -172,6 +173,7 @@
     <None Include="UI\Imgages2WavefrontObj.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImageProcessing\DepthCalculator.h" />
     <ClInclude Include="ImageProcessing\EdgeDetector.h" />
     <ClInclude Include="GeneratedFiles\ui_ImageWidget.h" />
     <ClInclude Include="ImageProcessing\ImageCombiner.h" />

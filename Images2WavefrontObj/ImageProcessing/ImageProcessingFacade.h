@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ImageCombiner.h"
+#include "DepthCalculator.h"
 #include "EdgeDetector.h"
 #include "VertexAdjuster.h"
 #include "VertexFinder.h"
@@ -25,6 +26,7 @@ private:
     static constexpr int MinimumGradient = 30;
 
     ImageCombiner m_imageCombiner;
+    DepthCalculator m_depthCalculator;
     EdgeDetector m_edgeDetector;
     VertexAdjuster m_vertexAdjuster;
     VertexFinder m_vertexFinder;
