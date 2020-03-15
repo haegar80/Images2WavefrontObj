@@ -1,10 +1,6 @@
 #include "VertexFinder.h"
 #include <QImage>
 
-VertexFinder::VertexFinder()
-{
-}
-
 std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(const QImage& p_gradientImage, int p_minimumGradient)
 {
     m_minimumGradient = p_minimumGradient;
@@ -516,18 +512,11 @@ void VertexFinder::MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels)
 
 void VertexFinder::DeleteMesh(Mesh* p_mesh)
 {
-    auto itDelete = m_meshes.begin();
-    for (; itDelete < m_meshes.end(); itDelete++)
-    {
-        if (p_mesh == (*itDelete).get())
-        {
-            break;
-        }
-    }
+    auto itDelete = find_if(m_meshes.begin(), m_meshes.end(), [&, p_mesh](std::unique_ptr<Mesh>& mesh) { return mesh.get() == p_mesh; });
 
-    if (m_meshes.end() != itDelete)
-    {
-        (void)m_meshes.erase(itDelete);
+    if (m_meshes.end() != itDelete) {
+        (void)std::move(*itDelete);
+        m_meshes.erase(itDelete);
     }
 }
 

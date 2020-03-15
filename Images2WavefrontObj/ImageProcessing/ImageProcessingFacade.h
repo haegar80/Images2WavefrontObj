@@ -2,6 +2,7 @@
 
 #include "ImageCombiner.h"
 #include "EdgeDetector.h"
+#include "VertexAdjuster.h"
 #include "VertexFinder.h"
 #include "TextureCreator.h"
 #include "MaterialProcessing/MaterialManager.h"
@@ -23,11 +24,12 @@ public:
 private:
     static constexpr int MinimumGradient = 30;
 
-    ImageCombiner m_imageCombiner{};
-    EdgeDetector m_edgeDetector{};
-    VertexFinder m_vertexFinder{};
-    TextureCreator m_textureCreator{};
-    MaterialManager m_materialManager{};
+    ImageCombiner m_imageCombiner;
+    EdgeDetector m_edgeDetector;
+    VertexAdjuster m_vertexAdjuster;
+    VertexFinder m_vertexFinder;
+    TextureCreator m_textureCreator;
+    MaterialManager m_materialManager;
 
     WavefrontObjectWriter m_wavefrontObjectWriter{"Wavefront", "wavefront"};
 };

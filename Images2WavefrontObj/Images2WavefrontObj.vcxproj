@@ -137,6 +137,7 @@
     <ClCompile Include="MaterialProcessing\MaterialManager.cpp" />
     <ClCompile Include="UI\Images2WavefrontObj.cpp" />
     <ClCompile Include="ImageProcessing\VertexFinder.cpp" />
+    <ClCompile Include="ImageProcessing\VertexAdjuster.cpp" />
     <ClCompile Include="WavefrontObject\MaterialWriter.cpp" />
     <ClCompile Include="WavefrontObject\WavefrontObjectWriter.cpp" />
     <ClCompile Include="WavefrontObject\Material.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="ImageProcessing\VertexFinder.h" />
     <ClInclude Include="ImageProcessing\TextureCreator.h" />
     <ClInclude Include="MaterialProcessing\MaterialManager.h" />
+    <ClInclude Include="ImageProcessing\VertexAdjuster.h" />
     <ClInclude Include="WavefrontObject\MaterialWriter.h" />
     <ClInclude Include="WavefrontObject\WavefrontObjectWriter.h" />
     <ClInclude Include="WavefrontObject\Material.h" />

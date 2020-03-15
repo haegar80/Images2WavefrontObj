@@ -10,7 +10,7 @@ class QImage;
 class VertexFinder
 {
 public:
-    VertexFinder();
+    VertexFinder() = default;
     virtual ~VertexFinder() = default;
     VertexFinder(const VertexFinder&) = delete;
     VertexFinder& operator=(const VertexFinder&) = delete;
