@@ -12,7 +12,8 @@ void DepthCalculator::CalculateDepths(int p_imageWidth, int p_imageHeight, std::
             {
                 int pixelX = vertices.at(i).X;
                 int pixelY = vertices.at(i).Y;
-                int pixelZ = CalculateDepth(p_imageWidth, p_imageHeight, pixelX, pixelY);
+                int depth = CalculateDepth(p_imageWidth, p_imageHeight, pixelX, pixelY);
+                int pixelZ = GetZPixel(p_imageWidth, p_imageHeight, depth);
                 mesh.get()->UpdateVertex(i, pixelX, pixelY, pixelZ);
             }
         }
@@ -35,31 +36,29 @@ int DepthCalculator::CalculateDepth(int p_imageWidth, int p_imageHeight, int p_p
     }
     constexpr int minYOffset = 1; // Avoid 0
     depthValue = static_cast<int>((static_cast<double>(p_imageWidth) / disparity)*(p_imageHeight - p_pixelY + minYOffset));
-    
-    if (depthValue > 0)
-    {
-        depthValue *= -1;
-    }
-    else if (0 == depthValue)
-    {
-        depthValue = NearestZPixel;
-    }
 
     return depthValue;
 }
 
-/**
 int DepthCalculator::GetZPixel(int p_imageWidth, int p_imageHeight, int p_depth)
 {
+    if (p_depth > 0)
+    {
+        p_depth *= -1;
+    }
+
     constexpr int MinDepth = 0;
     int maxDepth = CalculateDepth(p_imageWidth, p_imageHeight, (p_imageWidth / 2), 0);
   
     int maxDepthDifference = maxDepth - MinDepth;
-    float scaleFactor = static_cast<float>(p_depth) / maxDepthDifference;
+    float scaleFactor = static_cast<float>(p_depth) / maxDepthDifference * 2;
+    if (scaleFactor < 0)
+    {
+        scaleFactor *= -1;
+    }
 
     int maxZPixelDifference = FarestZPixel - NearestZPixel;
-    int pixelZ = NearestZPixel + (static_cast<int>(scaleFactor) * maxZPixelDifference);
+    int pixelZ = NearestZPixel + static_cast<int>(scaleFactor * maxZPixelDifference - 0.5);
     
-    return p_depth;
+    return pixelZ;
 }
-*/

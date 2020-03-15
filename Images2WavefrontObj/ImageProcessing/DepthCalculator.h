@@ -19,8 +19,9 @@ public:
 
 private:
     static constexpr int NearestZPixel = -1;
+    static constexpr int FarestZPixel = -100;
 
     int CalculateDepth(int p_imageWidth, int p_imageHeight, int p_pixelX, int p_pixelY);
-    //int GetZPixel(int p_imageWidth, int p_imageHeight, int p_depth);
+    int GetZPixel(int p_imageWidth, int p_imageHeight, int p_depth);
 };
 
