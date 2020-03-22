@@ -59,14 +59,19 @@ void Mesh::AddFace(Material* p_material)
     m_submeshes.back()->AddNewFace();
 }
 
-void Mesh::MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material)
+void Mesh::MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material, bool p_deleteOldFace)
 {
     SubMesh* oldSubmesh = m_submeshes.at(p_submeshVectorIndex);
-    ObjFace oldFace = oldSubmesh->DeleteFace(p_faceVectorIndex);
+
+    ObjFace oldFace = oldSubmesh->GetFaces().at(p_faceVectorIndex);
+    if (p_deleteOldFace)
+    {
+        (void) oldSubmesh->DeleteFace(p_faceVectorIndex);
+    }
 
     // For new material
     FindAndUpdateSubmesh(p_material);
-    m_submeshes.back()->AddExistingFace(std::move(oldFace));
+    m_submeshes.back()->AddExistingFace(oldFace);
 }
 
 void Mesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex, unsigned short p_normalIndex)

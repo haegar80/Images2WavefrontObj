@@ -27,10 +27,10 @@ void MaterialManager::CreateDefaultMaterial()
     m_materials.push_back(material);
 }
 
-void MaterialManager::CreateMaterialsBasedOnTextures(std::map<FaceKey, std::string>& p_texturePaths)
+void MaterialManager::CreateMaterialsBasedOnTextures(std::map<std::string, std::vector<FaceKey>>& p_texturePaths)
 {
     int materialNumber = m_materials.size();
-    for (std::pair<FaceKey, std::string> texturePath : p_texturePaths)
+    for (std::pair<std::string, std::vector<FaceKey>> texturePath : p_texturePaths)
     {
         std::stringstream materialNameString;
         materialNameString << "material_" << materialNumber;
@@ -40,67 +40,58 @@ void MaterialManager::CreateMaterialsBasedOnTextures(std::map<FaceKey, std::stri
         rgbValue.G = 1.0;
         rgbValue.B = 1.0;
         material->setDiffuseColor(rgbValue);
-        material->setDiffuseTexturePath(texturePath.second);
+        material->setDiffuseTexturePath(texturePath.first);
 
         m_materials.push_back(material);
-        m_pendingUpdateMaterialsInMesh.insert(std::make_pair(texturePath.first, material));
+        m_pendingUpdateMaterialsInMesh.insert(std::make_pair(material, texturePath.second));
         materialNumber++;
     }
 }
 
 void MaterialManager::UpdateMaterialsInMesh(Mesh* p_mesh)
 {
-    int lastCheckedSubmeshVectorIndex = 0;
-    int numberOfMovedFaces = 0;
-    for (std::pair<FaceKey, Material*> materialToUpdate : m_pendingUpdateMaterialsInMesh)
+    for (std::pair<Material*, std::vector<FaceKey>> materialToUpdate : m_pendingUpdateMaterialsInMesh)
     {
-        int submeshVectorIndex = materialToUpdate.first.first;
-        if (lastCheckedSubmeshVectorIndex != submeshVectorIndex)
+        for (FaceKey& faceKey : materialToUpdate.second)
         {
-            lastCheckedSubmeshVectorIndex = submeshVectorIndex;
-            numberOfMovedFaces = 0;
+            p_mesh->MoveFace(faceKey.first, faceKey.second, materialToUpdate.first, false);
         }
-        int faceVectorIndex = materialToUpdate.first.second - numberOfMovedFaces;
-
-        int vertexIndex = GetVertexIndex(p_mesh, submeshVectorIndex, faceVectorIndex);
-        p_mesh->MoveFace(submeshVectorIndex, faceVectorIndex, materialToUpdate.second);
-        numberOfMovedFaces++;
-
-        // Check if further faces has same vertex index
-        while (HasMoreFacesWithSameVertexIndex(p_mesh, submeshVectorIndex, faceVectorIndex, vertexIndex))
-        {
-            p_mesh->MoveFace(submeshVectorIndex, faceVectorIndex, materialToUpdate.second);
-            numberOfMovedFaces++;
-        }
-
-        p_mesh->DeleteEmptySubmesh(submeshVectorIndex);
     }
+
+    // Assumption: For each mesh we had only one submesh with default material before calling this function
+    constexpr int SubmeshIndex = 0;
+
+    std::vector<SubMesh*>& submeshes = p_mesh->GetSubmeshes();
+    std::vector<ObjFace> faces = submeshes.at(SubmeshIndex)->GetFaces();
+    for (int faceIndex = faces.size() - 1; faceIndex >= 0; faceIndex--)
+    {
+        bool hasUpdatedSubmeshAndFace = HasUpdatedSubmeshAndFace(SubmeshIndex, faceIndex);
+        if (hasUpdatedSubmeshAndFace)
+        {
+            SubMesh* subMesh = p_mesh->GetSubmeshes().at(SubmeshIndex);
+            subMesh->DeleteFace(faceIndex);
+        }
+    }
+
+    p_mesh->DeleteEmptySubmesh(SubmeshIndex);
+
     m_pendingUpdateMaterialsInMesh.clear();
 }
 
-int MaterialManager::GetVertexIndex(Mesh* p_mesh, int p_submeshVectorIndex, int p_faceVectorIndex)
+bool MaterialManager::HasUpdatedSubmeshAndFace(int p_submeshVectorIndex, int p_faceVectorIndex)
 {
-    SubMesh* submesh = p_mesh->GetSubmeshes().at(p_submeshVectorIndex);
-    std::vector<ObjFace> faces = submesh->GetFaces();
+    bool hasUpdatedSubmeshAndFace = false;
 
-    int vertexIndex = 0;
-    if (faces.size() > p_faceVectorIndex)
+    for (std::pair<Material*, std::vector<FaceKey>> materialToUpdate : m_pendingUpdateMaterialsInMesh)
     {
-        ObjFace face = faces.at(p_faceVectorIndex);
-        vertexIndex = face.Indices.at(0).VertexIndex;
-    }
-    
-    return vertexIndex;
-}
+        std::vector<FaceKey>& faceKeys = materialToUpdate.second;
 
-bool MaterialManager::HasMoreFacesWithSameVertexIndex(Mesh* p_mesh, int p_submeshVectorIndex, int p_faceVectorIndex, int p_vertexIndex)
-{
-    bool hasMoreFaces = false;
-
-    int vertexIndex = GetVertexIndex(p_mesh, p_submeshVectorIndex, p_faceVectorIndex);
-    if ((vertexIndex > 0) && (vertexIndex == p_vertexIndex))
-    {
-        hasMoreFaces = true;
+        auto findFaceKey = std::find_if(faceKeys.begin(), faceKeys.end(), [p_submeshVectorIndex, p_faceVectorIndex](const FaceKey& faceKey) {return ((faceKey.first == p_submeshVectorIndex) && (faceKey.second == p_faceVectorIndex)); });
+        if (faceKeys.end() != findFaceKey)
+        {
+            hasUpdatedSubmeshAndFace = true;
+        }
     }
-    return hasMoreFaces;
+
+    return hasUpdatedSubmeshAndFace;
 }

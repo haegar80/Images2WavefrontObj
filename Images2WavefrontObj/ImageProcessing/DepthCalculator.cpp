@@ -34,7 +34,7 @@ int DepthCalculator::CalculateDepth(int p_imageWidth, int p_imageHeight, int p_p
     {
         disparity = 1;
     }
-    constexpr int minYOffset = 1; // Avoid 0
+    constexpr int minYOffset = 1; // Avoid division by 0
     depthValue = static_cast<int>((static_cast<double>(p_imageWidth) / disparity)*(p_imageHeight - p_pixelY + minYOffset));
 
     return depthValue;

@@ -37,7 +37,7 @@ public:
     void AddTexture(int p_u, int p_v);
     void UpdateVertex(int p_vertexIndex, int p_x, int p_y, int p_z);
     void AddFace(Material* p_material);
-    void MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material);
+    void MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material, bool p_deleteOldFace = true);
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
     void DeleteEmptySubmesh(int p_submeshVectorIndex);
     void Merge(Mesh* p_mesh);

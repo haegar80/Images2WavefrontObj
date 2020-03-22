@@ -7,15 +7,21 @@ TextureCreator::TextureCreator()
 {
 }
 
-std::map<FaceKey, std::string>& TextureCreator::CreateTextures(const QImage& p_originalImage, Mesh* p_mesh)
+std::map<std::string, std::vector<FaceKey>>& TextureCreator::CreateTextures(const QImage& p_originalImage, Mesh* p_mesh)
 {
-    m_tempTextures.clear();
+    m_diagonalPixels.clear();
+    m_identicalColors.clear();
+    m_alreadyHandledFaceKeys.clear();
     m_texturePaths.clear();
     m_originalImage = p_originalImage;
     AnalyzeFaces(p_mesh);
-    SaveTextures(p_mesh);
 
     return m_texturePaths;
+}
+
+void TextureCreator::ResetTextureNumber()
+{
+    m_lastUsedTextureNumber = 0;
 }
 
 void TextureCreator::AnalyzeFaces(Mesh* p_mesh)
@@ -31,18 +37,16 @@ void TextureCreator::AnalyzeFaces(Mesh* p_mesh)
 
             AnalyzeFace(faceKey, p_mesh, faces.at(faceIndex));
         }
-        m_lastCheckedVertexIndex = 0;
     }
+
+    AnalyzeDiagonalPixels();
+    CreateTempTextures();
 }
 
 void TextureCreator::AnalyzeFace(FaceKey p_faceKey, Mesh* p_mesh, ObjFace& p_face)
 {
     std::vector<ObjVertexCoords> vertices = p_mesh->GetVertices();
     std::vector<ObjFaceIndices> faceIndices = p_face.Indices;
-    if (m_lastCheckedVertexIndex == faceIndices.at(0).VertexIndex)
-    {
-        return;
-    }
 
     int diagonalPixelX1 = 0;
     int diagonalPixelX2 = 0;
@@ -58,7 +62,7 @@ void TextureCreator::AnalyzeFace(FaceKey p_faceKey, Mesh* p_mesh, ObjFace& p_fac
         {
             diagonalPixelX1 = vertex.X;
         }
-        else if (vertex.X != diagonalPixelX1)
+        else if (IsCurrentPixelDiagonalEndPoint(diagonalPixelX1, diagonalPixelX2, vertex.X))
         {
             diagonalPixelX2 = vertex.X;
         }
@@ -67,10 +71,10 @@ void TextureCreator::AnalyzeFace(FaceKey p_faceKey, Mesh* p_mesh, ObjFace& p_fac
         {
             diagonalPixelY1 = vertex.Y;
         }
-        else if (vertex.Y != diagonalPixelY1)
+        else if (IsCurrentPixelDiagonalEndPoint(diagonalPixelY1, diagonalPixelY2, vertex.Y))
         {
             diagonalPixelY2 = vertex.Y;
-        }   
+        }
     }
 
     SEdgePixels diagonalEdgePixels;
@@ -80,9 +84,27 @@ void TextureCreator::AnalyzeFace(FaceKey p_faceKey, Mesh* p_mesh, ObjFace& p_fac
     diagonalEdgePixels.endY = diagonalPixelY2;
 
     SortStartEndPixels(diagonalEdgePixels);
-    CreateTempTextures(p_faceKey, diagonalEdgePixels);
+    m_diagonalPixels.insert(std::make_pair(p_faceKey, diagonalEdgePixels));
+}
 
-    m_lastCheckedVertexIndex = faceIndices.at(0).VertexIndex;
+bool TextureCreator::IsCurrentPixelDiagonalEndPoint(int p_startDiagonal, int p_endDiagonalTemp, int p_currentPixel)
+{
+    bool isDiagonalPixel = false;
+
+    if (0 == p_endDiagonalTemp)
+    {
+        isDiagonalPixel = true;
+    }
+    else if ((p_endDiagonalTemp < p_startDiagonal) && (p_currentPixel < p_endDiagonalTemp))
+    {
+        isDiagonalPixel = true;
+    }
+    else if ((p_endDiagonalTemp > p_startDiagonal) && (p_currentPixel > p_endDiagonalTemp))
+    {
+        isDiagonalPixel = true;
+    }
+
+    return isDiagonalPixel;
 }
 
 void TextureCreator::SortStartEndPixels(SEdgePixels& p_edgePixels)
@@ -102,8 +124,142 @@ void TextureCreator::SortStartEndPixels(SEdgePixels& p_edgePixels)
     }
 }
 
-void TextureCreator::CreateTempTextures(FaceKey p_faceKey, SEdgePixels p_pixelsForTempTexture)
+void TextureCreator::AnalyzeDiagonalPixels()
 {
+    for (auto itCurrentPixel = m_diagonalPixels.begin(); m_diagonalPixels.end() != itCurrentPixel; ++itCurrentPixel)
+    {
+        m_identicalColors.emplace_back();
+        auto itOtherPixel = itCurrentPixel;
+        itOtherPixel++;
+        for (; m_diagonalPixels.end() != itOtherPixel; ++itOtherPixel)
+        {
+            bool identicalColors = CompareDiagonalPixels((*itCurrentPixel).second, (*itOtherPixel).second);
+            if (identicalColors)
+            {
+                std::vector<FaceKey>& identicalColorsVector = m_identicalColors.back();
+                FaceKey currentFaceKey = (*itCurrentPixel).first;
+                auto findFaceKey1 = std::find_if(identicalColorsVector.begin(), identicalColorsVector.end(), [currentFaceKey](const FaceKey& faceKey) {return ((faceKey.first == currentFaceKey.first) && (faceKey.second == currentFaceKey.second)); });
+                if (identicalColorsVector.end() == findFaceKey1)
+                {
+                    identicalColorsVector.push_back((*itCurrentPixel).first);
+                }
+                FaceKey otherFaceKey = (*itOtherPixel).first;
+                auto findFaceKey2 = std::find_if(identicalColorsVector.begin(), identicalColorsVector.end(), [otherFaceKey](const FaceKey& faceKey) {return ((faceKey.first == otherFaceKey.first)  && (faceKey.second == otherFaceKey.second)); });
+                if (identicalColorsVector.end() == findFaceKey2)
+                {
+                    identicalColorsVector.push_back((*itOtherPixel).first);
+                }
+            }
+        }
+    }
+}
+
+bool TextureCreator::CompareDiagonalPixels(SEdgePixels p_diagonalPixels1, SEdgePixels p_diagonalPixels2)
+{
+    bool identicalColors = false;
+
+    int comparePixelX = 0;
+    int comparePixelY = 0;
+    int numberOfPixelX1 = p_diagonalPixels1.endX - p_diagonalPixels1.startX;
+    int numberOfPixelX2 = p_diagonalPixels2.endX - p_diagonalPixels2.startX;
+    int numberOfPixelY1 = p_diagonalPixels1.endY - p_diagonalPixels1.startY;
+    int numberOfPixelY2 = p_diagonalPixels2.endY - p_diagonalPixels2.startY;
+
+    if (numberOfPixelX1 < numberOfPixelX2)
+    {
+        comparePixelX = numberOfPixelX1;
+    }
+    else
+    {
+        comparePixelX = numberOfPixelX2;
+    }
+
+    if (numberOfPixelY1 < numberOfPixelY2)
+    {
+        comparePixelY = numberOfPixelY1;
+    }
+    else
+    {
+        comparePixelY = numberOfPixelY2;
+    }
+
+    identicalColors = true;
+    for (int x = 0; x < comparePixelX; x++)
+    {
+        for (int y = 0; y < comparePixelY; y++)
+        {
+            int grayValue1 = qGray(m_originalImage.pixel((x + p_diagonalPixels1.startX), (y + p_diagonalPixels1.startY)));
+            int grayValue2 = qGray(m_originalImage.pixel((x + p_diagonalPixels2.startX), (y + p_diagonalPixels2.startY)));
+
+            int grayDifference = grayValue1 - grayValue2;
+            if (grayDifference < -MaxGrayDifference || grayDifference > MaxGrayDifference)
+            {
+                identicalColors = false;
+                break;
+            }
+        }
+        if (!identicalColors)
+        {
+            break;
+        }
+    }
+
+    return identicalColors;
+}
+
+bool TextureCreator::HasIdenticalColorsWithOtherFaceKeys(FaceKey p_faceKey, std::vector<FaceKey>& p_otherFaceKeys)
+{
+    bool hasIdenticalColors = false;
+
+    for (std::vector<FaceKey> identicalColors : m_identicalColors)
+    {
+        auto findFaceKey = std::find_if(identicalColors.begin(), identicalColors.end(), [p_faceKey](const FaceKey& faceKey) {return ((faceKey.first == p_faceKey.first) && (faceKey.second == p_faceKey.second)); });
+        if (identicalColors.end() != findFaceKey)
+        {
+            hasIdenticalColors = true;
+            for (FaceKey faceKey : identicalColors)
+            {
+                if (p_faceKey != faceKey)
+                {
+                    p_otherFaceKeys.push_back(faceKey);
+                }
+            }
+        }
+    }
+
+    return hasIdenticalColors;
+}
+
+void TextureCreator::CreateTempTextures()
+{
+    for (std::pair<FaceKey, SEdgePixels> diagonalPixel : m_diagonalPixels)
+    {
+        FaceKey currentFaceKey = diagonalPixel.first;
+        auto findFaceKey = std::find_if(m_alreadyHandledFaceKeys.begin(), m_alreadyHandledFaceKeys.end(), [currentFaceKey](const FaceKey& faceKey) {return ((faceKey.first == currentFaceKey.first) && (faceKey.second == currentFaceKey.second)); });
+        if (m_alreadyHandledFaceKeys.end() == findFaceKey)
+        {
+            std::vector<FaceKey> allFaceKeys;
+            allFaceKeys.push_back(currentFaceKey);
+
+            std::vector<FaceKey> otherFaceKeys;
+            bool hasIdenticalColors = HasIdenticalColorsWithOtherFaceKeys(diagonalPixel.first, otherFaceKeys);
+           
+            if (hasIdenticalColors)
+            {
+                for (FaceKey otherFaceKey : otherFaceKeys)
+                {
+                    allFaceKeys.push_back(otherFaceKey);
+                }    
+            }
+            CreateTempTextures(allFaceKeys, diagonalPixel.second);
+        }
+    }
+}
+
+void TextureCreator::CreateTempTextures(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTempTexture)
+{
+    bool createdTempTexture = false;
+
     int textureWidth = p_pixelsForTempTexture.endX - p_pixelsForTempTexture.startX + 1;
     int textureHeight = p_pixelsForTempTexture.endY - p_pixelsForTempTexture.startY + 1;
     QSize tempImageSize = QSize(textureWidth, textureHeight);
@@ -119,36 +275,36 @@ void TextureCreator::CreateTempTextures(FaceKey p_faceKey, SEdgePixels p_pixelsF
         }
         tempImageX++;
     }
-
-    m_tempTextures.emplace(std::make_pair(p_faceKey, tempImage));
+    
+    SaveTexture(tempImage, p_faceKeys);
 }
 
-void TextureCreator::SaveTextures(Mesh* p_mesh)
+void TextureCreator::SaveTexture(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys)
 {
     QDir textureDirPath(QString("textures"));
     if (!textureDirPath.exists()) {
         textureDirPath.mkdir(".");
     }
 
-    int tempTextureNumber = 1;
-    for (std::pair<FaceKey, QImage> tempTexture : m_tempTextures)
-    {
-        std::stringstream filePathStringStream;
-        filePathStringStream << "texture_" << tempTextureNumber << ".jpg";
-        QFileInfo textureFile(textureDirPath, filePathStringStream.str().c_str());
+    m_lastUsedTextureNumber++;
 
-        // Directly call of toStdString() fails
-        QString& filePath = textureFile.filePath();
-        QByteArray tmp = filePath.toLocal8Bit();
-        std::string filePathString = std::string(tmp.constData());
-        bool successful = tempTexture.second.save(filePathString.c_str(), "JPG");
-        
-        if (successful)
+    std::stringstream filePathStringStream;
+    filePathStringStream << "texture_" << m_lastUsedTextureNumber << ".jpg";
+    QFileInfo textureFile(textureDirPath, filePathStringStream.str().c_str());
+
+    // Directly call of toStdString() fails
+    QString& filePath = textureFile.filePath();
+    QByteArray tmp = filePath.toLocal8Bit();
+    std::string filePathString = std::string(tmp.constData());
+    bool successful = p_textureImage.save(filePathString.c_str(), "JPG");
+
+    if (successful)
+    {
+        for (FaceKey faceKey : p_faceKeys)
         {
-            m_texturePaths.insert(std::make_pair(tempTexture.first, filePathString));
+            m_alreadyHandledFaceKeys.push_back(faceKey);
         }
 
-        tempTextureNumber++;
+        m_texturePaths.emplace(std::make_pair(filePathString, p_faceKeys));
     }
-    
 }

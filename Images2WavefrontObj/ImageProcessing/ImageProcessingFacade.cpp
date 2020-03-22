@@ -19,11 +19,12 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
 
     m_materialManager.CreateDefaultMaterial();
 
+    m_textureCreator.ResetTextureNumber();
     std::vector<Mesh*> meshesRawPointer;
     for (std::unique_ptr<Mesh>& mesh : meshes)
     {
         meshesRawPointer.push_back(mesh.get());
-        std::map<FaceKey, std::string>& texturePaths = m_textureCreator.CreateTextures(p_image, mesh.get());
+        std::map<std::string, std::vector<FaceKey>>& texturePaths = m_textureCreator.CreateTextures(p_image, mesh.get());
         m_materialManager.CreateMaterialsBasedOnTextures(texturePaths);
         m_materialManager.UpdateMaterialsInMesh(mesh.get());
     }
