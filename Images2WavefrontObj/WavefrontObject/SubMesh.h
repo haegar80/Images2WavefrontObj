@@ -24,6 +24,7 @@ public:
     void AddNewFace();
     void AddExistingFace(ObjFace p_existingFace);
     void AddFaceIndices(int p_vertexIndex, int p_textureIndex = 0, int p_normalIndex = 0);
+    void UpdateExistingFace(int p_faceVectorIndex, ObjFace p_existingFace);
     ObjFace DeleteFace(int p_faceVectorIndex);
 
     Material* GetMaterial() const {

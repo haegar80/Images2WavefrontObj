@@ -1,7 +1,9 @@
 #include "TextureCreator.h"
+#include "DepthCalculator.h"
 #include "../WavefrontObject/SubMesh.h"
 #include <sstream>
 #include <QDir>
+#include <cmath>
 
 TextureCreator::TextureCreator()
 {
@@ -14,7 +16,9 @@ std::map<std::string, std::vector<FaceKey>>& TextureCreator::CreateTextures(cons
     m_alreadyHandledFaceKeys.clear();
     m_texturePaths.clear();
     m_originalImage = p_originalImage;
-    AnalyzeFaces(p_mesh);
+    m_currentMesh = p_mesh;
+
+    AnalyzeFaces();
 
     return m_texturePaths;
 }
@@ -24,9 +28,9 @@ void TextureCreator::ResetTextureNumber()
     m_lastUsedTextureNumber = 0;
 }
 
-void TextureCreator::AnalyzeFaces(Mesh* p_mesh)
+void TextureCreator::AnalyzeFaces()
 {
-    std::vector<SubMesh*> submeshes = p_mesh->GetSubmeshes();
+    std::vector<SubMesh*> submeshes = m_currentMesh->GetSubmeshes();
     for (int submeshIndex = 0; submeshIndex < submeshes.size(); submeshIndex++)
     {
         std::vector<ObjFace> faces = submeshes.at(submeshIndex)->GetFaces();
@@ -35,7 +39,7 @@ void TextureCreator::AnalyzeFaces(Mesh* p_mesh)
             FaceKey faceKey;
             faceKey = std::make_pair(submeshIndex, faceIndex);
 
-            AnalyzeFace(faceKey, p_mesh, faces.at(faceIndex));
+            AnalyzeFace(faceKey, faces.at(faceIndex));
         }
     }
 
@@ -43,9 +47,9 @@ void TextureCreator::AnalyzeFaces(Mesh* p_mesh)
     CreateTempTextures();
 }
 
-void TextureCreator::AnalyzeFace(FaceKey p_faceKey, Mesh* p_mesh, ObjFace& p_face)
+void TextureCreator::AnalyzeFace(FaceKey p_faceKey, ObjFace& p_face)
 {
-    std::vector<ObjVertexCoords> vertices = p_mesh->GetVertices();
+    std::vector<ObjVertexCoords> vertices = m_currentMesh->GetVertices();
     std::vector<ObjFaceIndices> faceIndices = p_face.Indices;
 
     int diagonalPixelX1 = 0;
@@ -256,19 +260,19 @@ void TextureCreator::CreateTempTextures()
     }
 }
 
-void TextureCreator::CreateTempTextures(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTempTexture)
+void TextureCreator::CreateTempTextures(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTexture)
 {
     bool createdTempTexture = false;
 
-    int textureWidth = p_pixelsForTempTexture.endX - p_pixelsForTempTexture.startX + 1;
-    int textureHeight = p_pixelsForTempTexture.endY - p_pixelsForTempTexture.startY + 1;
+    int textureWidth = p_pixelsForTexture.endX - p_pixelsForTexture.startX + 1;
+    int textureHeight = p_pixelsForTexture.endY - p_pixelsForTexture.startY + 1;
     QSize tempImageSize = QSize(textureWidth, textureHeight);
     QImage tempImage(tempImageSize, QImage::Format_RGB32);
 
     int tempImageX = 0;
-    for (int x = p_pixelsForTempTexture.startX; x <= p_pixelsForTempTexture.endX; x++) {
+    for (int x = p_pixelsForTexture.startX; x <= p_pixelsForTexture.endX; x++) {
         int tempImageY = 0;
-        for (int y = p_pixelsForTempTexture.startY; y <= p_pixelsForTempTexture.endY; y++) {
+        for (int y = p_pixelsForTexture.startY; y <= p_pixelsForTexture.endY; y++) {
             QRgb rgbValue = m_originalImage.pixel(x, y);
             tempImage.setPixel(tempImageX, tempImageY, rgbValue);
             tempImageY++;
@@ -277,6 +281,7 @@ void TextureCreator::CreateTempTextures(std::vector<FaceKey>& p_faceKeys, SEdgeP
     }
     
     SaveTexture(tempImage, p_faceKeys);
+    CreateTextureCoordinates(tempImage, p_faceKeys);
 }
 
 void TextureCreator::SaveTexture(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys)
@@ -306,5 +311,39 @@ void TextureCreator::SaveTexture(const QImage& p_textureImage, std::vector<FaceK
         }
 
         m_texturePaths.emplace(std::make_pair(filePathString, p_faceKeys));
+    }
+}
+
+void TextureCreator::CreateTextureCoordinates(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys)
+{
+    constexpr double PI = 3.141592653589793238463;
+    int textureWidth = p_textureImage.width();
+    int textureHeight = p_textureImage.height();
+
+    std::vector<ObjVertexCoords> vertices = m_currentMesh->GetVertices();
+    
+    for (FaceKey& faceKey : p_faceKeys)
+    {
+        std::vector<SubMesh*> submeshes = m_currentMesh->GetSubmeshes();
+        std::vector<ObjFace> faces = submeshes.at(faceKey.first)->GetFaces();
+        ObjFace& face = faces.at(faceKey.second);
+        for (ObjFaceIndices& faceIndex : face.Indices)
+        {
+            ObjVertexCoords vertex = vertices.at(faceIndex.VertexIndex - 1);
+            double pixelX = static_cast<double>(vertex.X) / m_originalImage.width();
+            double pixelY = static_cast<double>(vertex.Y) / m_originalImage.height();
+            double pixelZ = static_cast<double>(vertex.Z) / (DepthCalculator::GetZPixelFarest() - DepthCalculator::GetZPixelNearest());
+
+            double phi = atan2(pixelZ, pixelX);
+            double theta = asin(pixelY);
+            double pixelU = 0.5 + phi / (2 * PI);
+            pixelU *= m_originalImage.width();
+            double pixelV = 0.5 - theta / PI;
+            pixelV *= m_originalImage.height();
+
+            m_currentMesh->AddTexture(static_cast<int>(pixelU), static_cast<int>(pixelV));
+            faceIndex.TextureIndex = m_currentMesh->GetTextures().size();
+            submeshes.at(faceKey.first)->UpdateExistingFace(faceKey.second, face);
+        }
     }
 }

@@ -32,6 +32,11 @@ void SubMesh::AddFaceIndices(int p_vertexIndex, int p_textureIndex, int p_normal
     }
 }
 
+void SubMesh::UpdateExistingFace(int p_faceVectorIndex, ObjFace p_existingFace)
+{
+    m_faces[p_faceVectorIndex] = p_existingFace;
+}
+
 ObjFace SubMesh::DeleteFace(int p_faceVectorIndex)
 {
     auto itDelete = m_faces.begin() + p_faceVectorIndex;

@@ -1,6 +1,16 @@
 #include "DepthCalculator.h"
 #include "../WavefrontObject/Mesh.h"
 
+int DepthCalculator::GetZPixelNearest()
+{
+    return NearestZPixel;
+}
+
+int DepthCalculator::GetZPixelFarest()
+{
+    return FarestZPixel;
+}
+
 void DepthCalculator::CalculateDepths(int p_imageWidth, int p_imageHeight, std::vector<std::unique_ptr<Mesh>>& p_meshes)
 {
     for (std::unique_ptr<Mesh>& mesh : p_meshes)

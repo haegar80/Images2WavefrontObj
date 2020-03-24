@@ -103,7 +103,7 @@ void WavefrontObjectWriter::WriteObjTextureCoords(std::ofstream& p_objFile, cons
         m_hasTextures = true;
         for (ObjTextureCoords texture : p_textures)
         {
-            p_objFile << "vt " << texture.U << " " << texture.U << "\n";
+            p_objFile << "vt " << texture.U << " " << texture.V << "\n";
         }
     }
 }

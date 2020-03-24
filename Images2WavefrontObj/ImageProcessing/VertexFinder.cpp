@@ -328,10 +328,10 @@ void VertexFinder::AddVerticesAndFace(std::vector<SEdgePixels>& p_edgePixelsVect
 
             if (!faceStartVertexAdded)
             {
-                currentMesh->AddFaceIndices(startEdgeFaceIndex, startEdgeFaceIndex);
+                currentMesh->AddFaceIndices(startEdgeFaceIndex);
                 faceStartVertexAdded = true;
             }
-            currentMesh->AddFaceIndices(endEdgeFaceIndex, endEdgeFaceIndex);
+            currentMesh->AddFaceIndices(endEdgeFaceIndex);
         }
     }
 }

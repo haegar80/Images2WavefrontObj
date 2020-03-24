@@ -12,9 +12,9 @@ public:
     virtual ~DepthCalculator() = default;
     DepthCalculator(const DepthCalculator&) = delete;
     DepthCalculator& operator=(const DepthCalculator&) = delete;
-    DepthCalculator(DepthCalculator&&) = default;
-    DepthCalculator& operator=(DepthCalculator&&) = default;
 
+    static int GetZPixelNearest();
+    static int GetZPixelFarest();
     void CalculateDepths(int p_imageWidth, int p_imageHeight, std::vector<std::unique_ptr<Mesh>>& p_meshes);
 
 private:
