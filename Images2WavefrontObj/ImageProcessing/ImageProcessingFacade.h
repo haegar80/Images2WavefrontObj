@@ -3,6 +3,7 @@
 #include "ImageCombiner.h"
 #include "DepthCalculator.h"
 #include "EdgeDetector.h"
+#include "NormalCalculator.h"
 #include "VertexAdjuster.h"
 #include "VertexFinder.h"
 #include "TextureCreator.h"
@@ -28,6 +29,7 @@ private:
     ImageCombiner m_imageCombiner;
     DepthCalculator m_depthCalculator;
     EdgeDetector m_edgeDetector;
+    NormalCalculator m_normalCalculator;
     VertexAdjuster m_vertexAdjuster;
     VertexFinder m_vertexFinder;
     TextureCreator m_textureCreator;

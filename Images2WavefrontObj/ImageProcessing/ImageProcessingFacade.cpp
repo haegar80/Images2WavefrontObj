@@ -16,6 +16,7 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
     std::vector<std::unique_ptr<Mesh>>& meshes = m_vertexFinder.FindVerticesFromGradientImage(gradientImage, MinimumGradient);
     m_vertexAdjuster.HandleVerticesGap(meshes);
     m_depthCalculator.CalculateDepths(p_image.width(), p_image.height(), meshes);
+    m_normalCalculator.CalculateNormals(meshes);
 
     m_materialManager.CreateDefaultMaterial();
 
