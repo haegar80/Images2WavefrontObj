@@ -16,6 +16,7 @@ public:
     TextureCreator& operator=(const TextureCreator&) = delete;
 
     std::map<std::string, std::vector<FaceKey>>& CreateTextures(const QImage& p_originalImage, Mesh* p_mesh);
+    void CreateTextureCoordinates(Mesh* p_mesh);
     void ResetTextureNumber();
 
 private:
@@ -40,6 +41,5 @@ private:
     void CreateTempTextures();
     void CreateTempTextures(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTexture);
     void SaveTexture(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys);
-    void CreateTextureCoordinates(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys);
 };
 

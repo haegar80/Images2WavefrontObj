@@ -16,7 +16,6 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
     std::vector<std::unique_ptr<Mesh>>& meshes = m_vertexFinder.FindVerticesFromGradientImage(gradientImage, MinimumGradient);
     m_vertexAdjuster.HandleVerticesGap(meshes);
     m_depthCalculator.CalculateDepths(p_image.width(), p_image.height(), meshes);
-    m_normalCalculator.CalculateNormals(meshes);
 
     m_materialManager.CreateDefaultMaterial();
 
@@ -28,6 +27,14 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
         std::map<std::string, std::vector<FaceKey>>& texturePaths = m_textureCreator.CreateTextures(p_image, mesh.get());
         m_materialManager.CreateMaterialsBasedOnTextures(texturePaths);
         m_materialManager.UpdateMaterialsInMesh(mesh.get());
+    }
+
+    m_vertexAdjuster.NormVertices(meshes, p_image.width(), p_image.height());
+    m_normalCalculator.CalculateNormals(meshes);
+
+    for (std::unique_ptr<Mesh>& mesh : meshes)
+    {
+        m_textureCreator.CreateTextureCoordinates(mesh.get());
     }
 
     m_wavefrontObjectWriter.WriteWavefrontObject(meshesRawPointer, m_materialManager.GetMaterials());

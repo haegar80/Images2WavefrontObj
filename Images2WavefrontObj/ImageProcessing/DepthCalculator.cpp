@@ -24,7 +24,7 @@ void DepthCalculator::CalculateDepths(int p_imageWidth, int p_imageHeight, std::
                 int pixelY = vertices.at(i).Y;
                 int depth = CalculateDepth(p_imageWidth, p_imageHeight, pixelX, pixelY);
                 int pixelZ = GetZPixel(p_imageWidth, p_imageHeight, depth);
-                mesh.get()->UpdateVertex(i, pixelX, pixelY, pixelZ);
+                mesh->UpdateVertex(i, pixelX, pixelY, pixelZ);
             }
         }
     }

@@ -26,15 +26,15 @@ void NormalCalculator::CalculateAndAddNormalVector(Mesh* p_mesh, SubMesh* p_subm
         ObjFace& face = faces.at(faceVectorIndex);
         ObjFaceIndices faceIndices1 = face.Indices.at(0);
         ObjVertexCoords vertex1 = vertices.at(faceIndices1.VertexIndex - 1);
-        const QVector3D vector1(static_cast<float>(vertex1.X), static_cast<float>(vertex1.Y), static_cast<float>(vertex1.Z));
+        const QVector3D vector1(vertex1.X, vertex1.Y, vertex1.Z);
 
         ObjFaceIndices faceIndices2 = face.Indices.at(1);
         ObjVertexCoords vertex2 = vertices.at(faceIndices2.VertexIndex - 1);
-        const QVector3D vector2(static_cast<float>(vertex2.X), static_cast<float>(vertex2.Y), static_cast<float>(vertex2.Z));
+        const QVector3D vector2(vertex2.X, vertex2.Y, vertex2.Z);
 
-        QVector3D normalVector = QVector3D::crossProduct(vector1, vector2);
+        QVector3D normalVector = QVector3D::normal(vector1, vector2);
 
-        p_mesh->AddNormal(static_cast<int>(normalVector.x()), static_cast<int>(normalVector.y()), static_cast<int>(normalVector.z()));
+        p_mesh->AddNormal(normalVector.x(), normalVector.y(), normalVector.z());
 
         for (ObjFaceIndices& faceIndex : face.Indices)
         {

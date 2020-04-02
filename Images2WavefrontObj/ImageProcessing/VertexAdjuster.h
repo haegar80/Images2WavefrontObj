@@ -16,6 +16,7 @@ public:
     VertexAdjuster& operator=(VertexAdjuster&&) = default;
 
     void HandleVerticesGap(std::vector<std::unique_ptr<Mesh>>& p_meshes);
+    void NormVertices(std::vector<std::unique_ptr<Mesh>>& p_meshes, int p_originalImageWidth, int p_p_originalImageHeight);
 
 private:
     static constexpr int MaxiumNumberOfVerticesGapPixels = 10;

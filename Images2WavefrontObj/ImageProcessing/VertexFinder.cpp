@@ -345,13 +345,13 @@ int VertexFinder::AddVertices(Mesh* p_mesh, SEdgePixels p_edgePixels, bool p_isS
         if (p_isStartVertexNew)
         {
             numberOfVerticesAdded++;
-            p_mesh->AddVertex(p_edgePixels.startX, p_edgePixels.startY, 0);
+            p_mesh->AddVertex(static_cast<float>(p_edgePixels.startX), static_cast<float>(p_edgePixels.startY), 0.0f);
         }
 
         if (p_isEndVertexNew)
         {
             numberOfVerticesAdded++;
-            p_mesh->AddVertex(p_edgePixels.endX, p_edgePixels.endY, 0);
+            p_mesh->AddVertex(static_cast<float>(p_edgePixels.endX), static_cast<float>(p_edgePixels.endY), 0.0f);
         }
 
         m_addedEdges.push_back(p_edgePixels);
