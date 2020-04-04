@@ -38,6 +38,7 @@ QImage ImageProcessingFacade::Generate3dModel(const QImage& p_image)
     }
 
     m_wavefrontObjectWriter.WriteWavefrontObject(meshesRawPointer, m_materialManager.GetMaterials());
+    m_readableVertexWriter.WriteVertices(meshesRawPointer, p_image.width(), p_image.height());
 
     return gradientImage;
 }

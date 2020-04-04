@@ -9,6 +9,7 @@
 #include "TextureCreator.h"
 #include "MaterialProcessing/MaterialManager.h"
 #include "WavefrontObject/WavefrontObjectWriter.h"
+#include "WavefrontObject/ReadableVertexWriter.h"
 #include <QImage>
 
 class QStringList;
@@ -36,5 +37,6 @@ private:
     MaterialManager m_materialManager;
 
     WavefrontObjectWriter m_wavefrontObjectWriter{"Wavefront", "wavefront"};
+    ReadableVertexWriter m_readableVertexWriter{ "Wavefront", "dummy" };
 };
 
