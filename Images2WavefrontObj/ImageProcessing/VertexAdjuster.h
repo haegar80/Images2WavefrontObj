@@ -19,14 +19,15 @@ public:
     void NormVertices(std::vector<std::unique_ptr<Mesh>>& p_meshes, int p_originalImageWidth, int p_p_originalImageHeight);
 
 private:
-    static constexpr int MaxiumNumberOfVerticesGapPixels = 10;
+    static constexpr int MaxiumNumberOfVerticesGapPixels = 20;
 
-    std::map<Mesh*, ObjVertexCoords> m_firstVertices;
-    std::map<Mesh*, ObjVertexCoords> m_lastVertices;
+    std::map<Mesh*, std::vector<ObjVertexCoords>> m_interestingVerticesForGapDetecting;
     std::map<Mesh*, Mesh*> m_meshesToMerge;
     std::vector<Mesh*> m_meshesToDelete;
 
-    void CheckAndAdjustVertexGap(Mesh* p_currentCheckingMesh, ObjVertexCoords p_currentCheckingVertex);
-    bool HasVertexGap(ObjVertexCoords p_alreadyCheckedVertex, ObjVertexCoords p_currentCheckingVertex);
+    void FindVerticesForGapDetecting(Mesh* p_mesh);
+    void AddVerticesForGapDetecting(Mesh* p_mesh, int p_minXIndex, int p_minYIndex, int p_maxXIndex, int p_maxYIndex);
+    void CheckAndAdjustVertexGap(Mesh* p_mesh1, Mesh* p_mesh2);
+    bool HasVertexGap(ObjVertexCoords p_vertex1, ObjVertexCoords p_vertex2);
 };
 
