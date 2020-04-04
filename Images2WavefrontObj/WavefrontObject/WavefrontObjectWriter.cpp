@@ -45,7 +45,7 @@ void WavefrontObjectWriter::WriteWavefrontObject(const std::vector<Mesh*>& p_mes
 
 void WavefrontObjectWriter::WriteMaterials(std::ofstream& p_objFile, const std::vector<Material*>& p_materials)
 {
-    MaterialWriter materialWriter(m_currentDirPath, m_currentDirPath);
+    MaterialWriter materialWriter(m_currentDirPath, m_currentFileName);
     materialWriter.WriteMaterials(p_materials);
     p_objFile << "mtllib " << m_currentFileName << ".mtl\n";
 }
