@@ -42,7 +42,7 @@ public:
     void DeleteEmptySubmesh(int p_submeshVectorIndex);
     void Merge(Mesh* p_mesh);
     bool IsEdgeFound(SEdgePixels p_edgePixels);
-    bool IsVertexFound(int p_pixelX, int p_pixelY);
+    bool IsVertexFound(float p_pixelX, float p_pixelY);
 
     std::string getName() const
     {

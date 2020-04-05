@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../WavefrontObject/Material.h"
+#include "FaceFinder.h"
 #include "../WavefrontObject/Mesh.h"
 #include <memory>
 #include <vector>
@@ -14,8 +14,6 @@ public:
     virtual ~VertexFinder() = default;
     VertexFinder(const VertexFinder&) = delete;
     VertexFinder& operator=(const VertexFinder&) = delete;
-    VertexFinder(VertexFinder&&) = default;
-    VertexFinder& operator=(VertexFinder&&) = default;
 
     std::vector<std::unique_ptr<Mesh>>& FindVerticesFromGradientImage(const QImage& p_gradientImage, int p_minimumGradient);
 
@@ -32,8 +30,8 @@ private:
     static constexpr int MinimumNumberOfEdgePixels = 1;
     static constexpr int NumberOfCheckingNeighbouredPixels = 10;
 
+    FaceFinder m_faceFinder;
     std::vector<std::unique_ptr<Mesh>> m_meshes;
-    Material m_dummyMaterial{"DummyMaterial"};
     int m_minimumGradient{ 0 };
     std::pair<int, int> m_lastFoundAlreadyAddedVertex;
     SEdgePixels m_lastFoundAlreadyAddedEdge;
@@ -52,11 +50,11 @@ private:
     void AddVerticesAndFace(std::vector<SEdgePixels>& p_edgePixelsVector);
     int AddVertices(Mesh* p_mesh, SEdgePixels p_edgePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
     bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY);
-    std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(SEdgePixels p_facePixels);
+    std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(Mesh* p_currentMesh, SEdgePixels p_facePixels);
 
     Mesh* GetMeshBasedOnVertex(int p_pixelX, int p_pixelY);
-    Mesh* GetMeshBasedOnEdge(SEdgePixels p_edgePixels);
     void MergeMeshesIfEdgeInDifferentMeshes(SEdgePixels p_edgePixels);
+    void MergeOtherMeshWithCurrentMeshIfDifferent(Mesh* p_currentMesh, int p_pixelX, int p_pixelY);
     void DeleteMesh(Mesh* p_mesh);
 
     int GetAlreadyAddedVertexIndex(Mesh* p_currentMesh, int p_pixelX, int p_pixelY);

@@ -163,7 +163,7 @@ bool Mesh::IsEdgeFound(SEdgePixels p_edgePixels)
     return edgeFound;
 }
 
-bool Mesh::IsVertexFound(int p_pixelX, int p_pixelY)
+bool Mesh::IsVertexFound(float p_pixelX, float p_pixelY)
 {
     bool vertexFound = false;
 
