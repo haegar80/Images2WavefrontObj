@@ -6,6 +6,7 @@
 #include "NormalCalculator.h"
 #include "VertexAdjuster.h"
 #include "VertexFinder.h"
+#include "VertexGapFinder.h"
 #include "TextureCreator.h"
 #include "MaterialProcessing/MaterialManager.h"
 #include "WavefrontObject/WavefrontObjectWriter.h"
@@ -33,6 +34,7 @@ private:
     NormalCalculator m_normalCalculator;
     VertexAdjuster m_vertexAdjuster;
     VertexFinder m_vertexFinder;
+    VertexGapFinder m_vertexGapFinder;
     TextureCreator m_textureCreator;
     MaterialManager m_materialManager;
 
