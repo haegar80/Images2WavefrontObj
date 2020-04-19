@@ -8,13 +8,41 @@ void FaceFinder::AddFaces(Mesh* p_mesh, std::vector<int>& p_faceIndices)
     m_handledNotConsecutiveFaceIndices.clear();
 
     std::vector<ObjVertexCoords> allVertices = p_mesh->GetVertices();
+    std::vector<int> faceIndicesToCheck;
     std::vector<ObjVertexCoords> verticesToCheck;
-    for (int faceIndex : p_faceIndices)
+
+    std::vector<SubMesh*>& submeshes = p_mesh->GetSubmeshes();
+    for (int submeshIndex = 0; submeshIndex < submeshes.size(); submeshIndex++)
     {
-        verticesToCheck.push_back(allVertices.at(faceIndex - 1));
+        std::vector<ObjFace>& faces = submeshes.at(submeshIndex)->GetFaces();
+        for(int faceVectorIndex = 0; faceVectorIndex < faces.size(); faceVectorIndex++)
+        {
+            std::vector<ObjFaceIndices>& faceIndices = faces.at(faceVectorIndex).Indices;
+            for (ObjFaceIndices& faceIndex : faceIndices)
+            {
+                auto foundfaceIndex = std::find(faceIndicesToCheck.begin(), faceIndicesToCheck.end(), faceIndex.VertexIndex);
+                if (faceIndicesToCheck.end() == foundfaceIndex)
+                {
+                    verticesToCheck.push_back(allVertices.at(faceIndex.VertexIndex - 1));
+                    faceIndicesToCheck.push_back(faceIndex.VertexIndex);
+                }
+            }
+        }
+
+        p_mesh->DeleteSubmesh(submeshes.at(submeshIndex));
     }
 
-    OrderVerticesWithMinXFirst(verticesToCheck, p_faceIndices);
+    for (int faceIndex : p_faceIndices)
+    {
+        auto foundfaceIndex = std::find(faceIndicesToCheck.begin(), faceIndicesToCheck.end(), faceIndex);
+        if (faceIndicesToCheck.end() == foundfaceIndex)
+        {
+           verticesToCheck.push_back(allVertices.at(faceIndex - 1));
+           faceIndicesToCheck.push_back(faceIndex);
+        }
+    }
+
+    OrderVerticesWithMinXFirst(verticesToCheck, faceIndicesToCheck);
     FindFaces(p_mesh);
     AddFaces(p_mesh);
 }
@@ -70,40 +98,49 @@ bool FaceFinder::GetAboveBelowEdgeInfo(ObjVertexCoords& p_vertex1, ObjVertexCoor
 
 void FaceFinder::FindFaces(Mesh* p_mesh)
 {
-    int currentIndex = 0;
-
-    for (; currentIndex < (m_orderedVerticesWithMinXFirst.size() - 1); currentIndex++)
+    if (m_orderedVerticesWithMinXFirst.size() == 2)
     {
-        ObjVertexCoords& vertex1 = m_orderedVerticesWithMinXFirst.at(currentIndex);
-        ObjVertexCoords& vertex2 = m_orderedVerticesWithMinXFirst.at(currentIndex + 1);
+        HandleFaceWithTotalTwoFaceIndices();
+    }
+    else {
+        int currentIndex = 0;
 
-        float slope = (vertex2.Y - vertex1.Y) / (vertex2.X - vertex1.X);
-        bool aboveBelowEdgeInfo = GetAboveBelowEdgeInfo(vertex1, vertex2);
-
-        bool nextNotConsecutiveFaceIndexFound = false;
-
-        int alreadHandledNotConsecutiveVectorIndex = 0;
-        bool alreadyHandledAsNotConsecutive = CheckIfFaceIndexHandledAsNotConsecutive(currentIndex + 1, alreadHandledNotConsecutiveVectorIndex);
-        if (alreadHandledNotConsecutiveVectorIndex)
+        for (; currentIndex < (m_orderedVerticesWithMinXFirst.size() - 1); currentIndex++)
         {
-            nextNotConsecutiveFaceIndexFound = FindNextNotConsecutiveFaceIndex(currentIndex, currentIndex + 1, slope, aboveBelowEdgeInfo, alreadHandledNotConsecutiveVectorIndex);
-        }
+            ObjVertexCoords& vertex1 = m_orderedVerticesWithMinXFirst.at(currentIndex);
+            ObjVertexCoords& vertex2 = m_orderedVerticesWithMinXFirst.at(currentIndex + 1);
 
-        if (!nextNotConsecutiveFaceIndexFound)
-        {
-            if ((currentIndex + 2) < m_orderedVerticesWithMinXFirst.size())
+            float slope = (vertex2.Y - vertex1.Y) / (vertex2.X - vertex1.X);
+            bool aboveBelowEdgeInfo = GetAboveBelowEdgeInfo(vertex1, vertex2);
+
+            bool nextNotConsecutiveFaceIndexFound = false;
+
+            int alreadHandledNotConsecutiveVectorIndex = 0;
+            bool alreadyHandledAsNotConsecutive = CheckIfFaceIndexHandledAsNotConsecutive(currentIndex + 1, alreadHandledNotConsecutiveVectorIndex);
+            if (alreadHandledNotConsecutiveVectorIndex)
             {
-                int nextFaceIndex = 0;
-                bool isNextConsecutiveFaceIndexFound = FindNextConsecutiveFaceIndex((currentIndex + 2), slope, aboveBelowEdgeInfo);
-                if (isNextConsecutiveFaceIndexFound)
+                nextNotConsecutiveFaceIndexFound = FindNextNotConsecutiveFaceIndex(currentIndex, currentIndex + 1, slope, aboveBelowEdgeInfo, alreadHandledNotConsecutiveVectorIndex);
+            }
+
+            if (!nextNotConsecutiveFaceIndexFound)
+            {
+                if ((currentIndex + 2) < m_orderedVerticesWithMinXFirst.size())
                 {
-                    currentIndex++;
+                    int nextFaceIndex = 0;
+                    bool isNextConsecutiveFaceIndexFound = FindNextConsecutiveFaceIndex((currentIndex + 2), slope, aboveBelowEdgeInfo);
+                    if (isNextConsecutiveFaceIndexFound)
+                    {
+                        currentIndex++;
+                    }
                 }
             }
         }
-    }
 
-    HandleLastFace(currentIndex);
+        if (m_orderedVerticesWithMinXFirst.size() > 3)
+        {
+            HandleLastFace(currentIndex);
+        }
+    }
 }
 
 bool FaceFinder::FindNextNotConsecutiveFaceIndex(int p_faceIndex1, int p_faceIndex2, float p_slope, bool p_aboveBelowEdgeInfo, int p_handledVectorIndex)
@@ -244,6 +281,14 @@ bool FaceFinder::CheckIfFaceIndexHandledAsNotConsecutive(int p_faceIndex, int& p
     }
 
     return alreadyHandledAsNotConsecutive;
+}
+
+void FaceFinder::HandleFaceWithTotalTwoFaceIndices()
+{
+    std::vector<int> handledFaceIndices;
+    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
+    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(1));
+    m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
 }
 
 void FaceFinder::HandleLastFace(int p_lastHandledFaceIndex)

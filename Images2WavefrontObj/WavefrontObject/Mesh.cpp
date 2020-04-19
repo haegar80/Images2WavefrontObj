@@ -79,13 +79,34 @@ void Mesh::AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_texture
     m_submeshes.back()->AddFaceIndices(p_vertexIndex, p_textureIndex, p_normalIndex);
 }
 
-void Mesh::DeleteEmptySubmesh(int p_submeshVectorIndex)
+void Mesh::DeleteSubmesh(SubMesh* p_submesh)
 {
-    SubMesh* submesh = m_submeshes.at(p_submeshVectorIndex);
-    if (0 == submesh->GetFaces().size())
+    auto itFoundSubmesh = std::find(m_submeshes.begin(), m_submeshes.end(), p_submesh);
+    if (m_submeshes.end() != itFoundSubmesh)
     {
-        auto itDelete = m_submeshes.begin() + p_submeshVectorIndex;
-        (void)m_submeshes.erase(itDelete);
+        if ((*itFoundSubmesh)->GetMaterial() == m_lastUsedMaterial)
+        {
+            m_lastUsedMaterial = nullptr;
+        }
+        delete *itFoundSubmesh;
+        (void)m_submeshes.erase(itFoundSubmesh);
+    }
+}
+
+void Mesh::DeleteEmptySubmesh(SubMesh* p_submesh)
+{
+    auto itFoundSubmesh = std::find(m_submeshes.begin(), m_submeshes.end(), p_submesh);
+    if (m_submeshes.end() != itFoundSubmesh)
+    {
+        if (0 == p_submesh->GetFaces().size())
+        {
+            if ((*itFoundSubmesh)->GetMaterial() == m_lastUsedMaterial)
+            {
+                m_lastUsedMaterial = nullptr;
+            }
+            delete *itFoundSubmesh;
+            (void)m_submeshes.erase(itFoundSubmesh);
+        }
     }
 }
 

@@ -73,7 +73,7 @@ void MaterialManager::UpdateMaterialsInMesh(Mesh* p_mesh)
         }
     }
 
-    p_mesh->DeleteEmptySubmesh(SubmeshIndex);
+    p_mesh->DeleteEmptySubmesh(submeshes.at(SubmeshIndex));
 
     m_pendingUpdateMaterialsInMesh.clear();
 }

@@ -39,7 +39,8 @@ public:
     void AddFace(Material* p_material);
     void MoveFace(int p_submeshVectorIndex, int p_faceVectorIndex, Material* p_material, bool p_deleteOldFace = true);
     void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
-    void DeleteEmptySubmesh(int p_submeshVectorIndex);
+    void DeleteSubmesh(SubMesh* p_submesh);
+    void DeleteEmptySubmesh(SubMesh* p_submesh);
     void Merge(Mesh* p_mesh);
     bool IsEdgeFound(SEdgePixels p_edgePixels);
     bool IsVertexFound(float p_pixelX, float p_pixelY);

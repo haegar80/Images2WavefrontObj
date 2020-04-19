@@ -33,6 +33,7 @@ private:
     bool CheckNextVertex(int p_vertexIndex, float p_slope, bool p_aboveBelowEdgeInfo);
     void HandleFindNextConsecutiveFaceIndexResult(bool p_nextFaceIndexFound, int p_nextFaceIndex, bool p_isConsecutive);
     bool CheckIfFaceIndexHandledAsNotConsecutive(int p_faceIndex, int& p_handledVectorIndex);
+    void HandleFaceWithTotalTwoFaceIndices();
     void HandleLastFace(int p_lastHandledFaceIndex);
     void AddFaces(Mesh* p_mesh);
 };
