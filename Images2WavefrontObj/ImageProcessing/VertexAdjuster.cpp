@@ -23,9 +23,12 @@ void VertexAdjuster::HandleVerticesGap(std::vector<std::unique_ptr<Mesh>>& p_mes
         }
     }
 
-    for (auto itMesh = m_meshesToMerge.rbegin(); m_meshesToMerge.rend() != itMesh; ++itMesh)
+    for (auto meshPair : m_meshesToMerge)
     {
-        itMesh->first->Merge(itMesh->second);
+        if (meshPair.first != meshPair.second)
+        {
+            meshPair.first->Merge(meshPair.second);
+        }
     }
 
     for (Mesh* meshToDelete : m_meshesToDelete)
@@ -128,8 +131,32 @@ void VertexAdjuster::CheckAndAdjustVertexGap(Mesh* p_mesh1, Mesh* p_mesh2)
             hasVertexGap = HasVertexGap(vertex1, vertex2);
             if (hasVertexGap)
             {
-                m_meshesToMerge.insert(std::make_pair(p_mesh1, p_mesh2));
-                m_meshesToDelete.push_back(p_mesh2);
+                bool shouldDeleteMesh = true;
+                Mesh* meshToMergeInto = p_mesh1;
+                Mesh* meshToDelete = p_mesh2;
+
+                // Example: Mesh 1 was planned to merge into Mesh 2, but Mesh 1 is also planned to merge into Mesh 3, 
+                // then we will merge Mesh 3 into Mesh 2, because all have neighboured vertices
+                if (IsAlreadyPlannedToDelete(meshToDelete))
+                {
+                    Mesh* tmpMeshToDelete = meshToMergeInto;
+                    meshToMergeInto = FindMeshToMergeInto(meshToDelete);
+                   
+                    if (IsAlreadyPlannedToDelete(tmpMeshToDelete))
+                    {
+                        tmpMeshToDelete = FindMeshToMergeInto(tmpMeshToDelete);
+                    }
+
+                    meshToDelete = tmpMeshToDelete; 
+                }
+                else if (IsAlreadyPlannedToDelete(meshToMergeInto))
+                {
+                    meshToMergeInto = FindMeshToMergeInto(meshToMergeInto);
+                }
+
+                m_meshesToMerge.insert(std::make_pair(meshToMergeInto, meshToDelete));
+                m_meshesToDelete.push_back(meshToDelete);
+
                 break;
             }
         }
@@ -138,6 +165,51 @@ void VertexAdjuster::CheckAndAdjustVertexGap(Mesh* p_mesh1, Mesh* p_mesh2)
             break;
         }
     }
+}
+
+bool VertexAdjuster::IsAlreadyPlannedToDelete(Mesh* p_mesh)
+{
+    bool isAlreadyPlannedToDelete = false;
+
+    auto foundMesh = std::find(m_meshesToDelete.begin(), m_meshesToDelete.end(), p_mesh);
+    if (m_meshesToDelete.end() != foundMesh)
+    {
+        isAlreadyPlannedToDelete = true;
+    }
+
+    return isAlreadyPlannedToDelete;
+}
+
+Mesh* VertexAdjuster::FindMeshToMergeInto(Mesh* p_meshToDelete)
+{
+    Mesh* meshToMergeInto = nullptr;
+
+    bool shouldContinueLoop = true;
+    
+    do {
+        for (auto meshPair : m_meshesToMerge)
+        {
+            if (meshPair.second == p_meshToDelete)
+            {
+                meshToMergeInto = meshPair.first;
+                break;
+            }
+        }
+
+        if (nullptr == meshToMergeInto)
+        {
+            shouldContinueLoop = false;
+        }
+        else
+        {
+            if (!IsAlreadyPlannedToDelete(meshToMergeInto))
+            {
+                shouldContinueLoop = false;
+            }
+        }
+    } while (shouldContinueLoop);
+
+    return meshToMergeInto;
 }
 
 bool VertexAdjuster::HasVertexGap(ObjVertexCoords p_vertex1, ObjVertexCoords p_vertex2)

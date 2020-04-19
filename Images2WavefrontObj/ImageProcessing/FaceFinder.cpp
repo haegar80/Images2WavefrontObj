@@ -268,17 +268,16 @@ void FaceFinder::HandleLastFace(int p_lastHandledFaceIndex)
     bool aboveBelowEdgeInfo = GetAboveBelowEdgeInfo(vertex1, vertex2);
 
     std::vector<int> handledFaceIndices;
-    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexSecondLastIndex));
-    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
     bool vertexValid = CheckNextVertex(0, slope, aboveBelowEdgeInfo);
     if (vertexValid)
     {
+        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexSecondLastIndex));
+        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
         handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
         m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
     }
     else
     {
-        handledFaceIndices.clear();
         handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
         handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
         m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
