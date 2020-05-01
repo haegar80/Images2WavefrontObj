@@ -34,7 +34,7 @@ private:
     bool FindNextNotConsecutiveFaceIndex(int p_faceIndex1, int p_faceIndex2, float p_slope, bool p_aboveBelowEdgeInfo, int p_handledVectorIndex);
     bool FindNextConsecutiveFaceIndex(int p_startIndex, float p_slope, bool p_aboveBelowEdgeInfo);
     bool CheckNextVertex(int p_vertexIndex, float p_slope, bool p_aboveBelowEdgeInfo);
-    void HandleFindNextConsecutiveFaceIndexResult(bool p_nextFaceIndexFound, int p_nextFaceIndex, bool p_isConsecutive);
+    void HandleFindNextConsecutiveFaceIndexResult(bool p_nextFaceIndexFound, bool p_isConsecutive, int p_faceIndex1, int p_faceIndex2, int p_faceIndex3 = 0);
     bool CheckIfFaceIndexHandledAsNotConsecutive(int p_faceIndex, int& p_handledVectorIndex);
     void HandleFaceWithTotalTwoFaceIndices();
     void HandleFaceWithTwoFaceIndices();

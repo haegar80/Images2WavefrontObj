@@ -135,7 +135,7 @@ void FaceFinder::FindFaces(Mesh* p_mesh)
 
             int alreadHandledNotConsecutiveVectorIndex = 0;
             bool alreadyHandledAsNotConsecutive = CheckIfFaceIndexHandledAsNotConsecutive(currentIndex + 1, alreadHandledNotConsecutiveVectorIndex);
-            if (alreadHandledNotConsecutiveVectorIndex)
+            if (alreadyHandledAsNotConsecutive)
             {
                 nextNotConsecutiveFaceIndexFound = FindNextNotConsecutiveFaceIndex(currentIndex, currentIndex + 1, slope, aboveBelowEdgeInfo, alreadHandledNotConsecutiveVectorIndex);
             }
@@ -183,6 +183,7 @@ bool FaceFinder::FindNextNotConsecutiveFaceIndex(int p_faceIndex1, int p_faceInd
         {
             nextFoundFaceIndex = faceIndex;
             nextNotConsecutiveFaceIndexFound = true;
+            break;
         }
     }
 
@@ -220,7 +221,7 @@ bool FaceFinder::FindNextConsecutiveFaceIndex(int p_startIndex, float p_slope, b
         nextConsecutiveFaceIndexFound = true;
     }
 
-    HandleFindNextConsecutiveFaceIndexResult(nextFaceIndexFound, nextFaceIndex, nextConsecutiveFaceIndexFound);
+    HandleFindNextConsecutiveFaceIndexResult(nextFaceIndexFound, nextConsecutiveFaceIndexFound, p_startIndex - 2, p_startIndex - 1, nextFaceIndex);
 
     return nextConsecutiveFaceIndexFound;
 }
@@ -255,14 +256,14 @@ bool FaceFinder::CheckNextVertex(int p_vertexIndex, float p_slope, bool p_aboveB
     return faceIndexValid;
 }
 
-void FaceFinder::HandleFindNextConsecutiveFaceIndexResult(bool p_nextFaceIndexFound, int p_nextFaceIndex, bool p_isConsecutive)
+void FaceFinder::HandleFindNextConsecutiveFaceIndexResult(bool p_nextFaceIndexFound, bool p_isConsecutive, int p_faceIndex1, int p_faceIndex2, int p_faceIndex3)
 {
     std::vector<int> handledFaceIndices;
-    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(p_nextFaceIndex - 2));
-    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(p_nextFaceIndex - 1));
+    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(p_faceIndex1));
+    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(p_faceIndex2));
     if (p_nextFaceIndexFound)
     {
-        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(p_nextFaceIndex));
+        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(p_faceIndex3));
         if (p_isConsecutive)
         {
             m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
@@ -286,7 +287,7 @@ bool FaceFinder::CheckIfFaceIndexHandledAsNotConsecutive(int p_faceIndex, int& p
     for(int i = 0; i < m_handledNotConsecutiveFaceIndices.size(); i++)
     {
         std::vector<int> handledFaceIndices = m_handledNotConsecutiveFaceIndices.at(i);
-        auto foundFaceIndex = std::find_if(handledFaceIndices.begin(), handledFaceIndices.end(), [p_faceIndex](int& handledFaceIndex) { return handledFaceIndex == (p_faceIndex + 1); });
+        auto foundFaceIndex = std::find_if(handledFaceIndices.begin(), handledFaceIndices.end(), [p_faceIndex](int& handledFaceIndex) { return handledFaceIndex == p_faceIndex; });
         if (handledFaceIndices.end() != foundFaceIndex)
         {
             alreadyHandledAsNotConsecutive = true;
