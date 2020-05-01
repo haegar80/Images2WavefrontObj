@@ -2,13 +2,15 @@
 
 void FaceFinder::AddFaces(Mesh* p_mesh, std::vector<int>& p_faceIndices)
 {
+    m_mapTempToRealFaceIndices.clear();
     m_orderedVerticesWithMinXFirst.clear();
     m_orderedFaceIndicesWithMinXFirst.clear();
     m_handledConsecutiveFaceIndices.clear();
     m_handledNotConsecutiveFaceIndices.clear();
 
     std::vector<ObjVertexCoords> allVertices = p_mesh->GetVertices();
-    std::vector<int> faceIndicesToCheck;
+    std::vector<int> tempFaceIndicesToCheck;
+    std::vector<int> realFaceIndicesToCheck;
     std::vector<ObjVertexCoords> verticesToCheck;
 
     std::vector<SubMesh*>& submeshes = p_mesh->GetSubmeshes();
@@ -20,11 +22,13 @@ void FaceFinder::AddFaces(Mesh* p_mesh, std::vector<int>& p_faceIndices)
             std::vector<ObjFaceIndices>& faceIndices = faces.at(faceVectorIndex).Indices;
             for (ObjFaceIndices& faceIndex : faceIndices)
             {
-                auto foundfaceIndex = std::find(faceIndicesToCheck.begin(), faceIndicesToCheck.end(), faceIndex.VertexIndex);
-                if (faceIndicesToCheck.end() == foundfaceIndex)
+                auto foundfaceIndex = std::find(realFaceIndicesToCheck.begin(), realFaceIndicesToCheck.end(), faceIndex.VertexIndex);
+                if (realFaceIndicesToCheck.end() == foundfaceIndex)
                 {
                     verticesToCheck.push_back(allVertices.at(faceIndex.VertexIndex - 1));
-                    faceIndicesToCheck.push_back(faceIndex.VertexIndex);
+                    tempFaceIndicesToCheck.push_back(verticesToCheck.size());
+                    realFaceIndicesToCheck.push_back(faceIndex.VertexIndex);
+                    m_mapTempToRealFaceIndices.insert(std::make_pair(static_cast<int>(verticesToCheck.size()), faceIndex.VertexIndex));
                 }
             }
         }
@@ -34,17 +38,30 @@ void FaceFinder::AddFaces(Mesh* p_mesh, std::vector<int>& p_faceIndices)
 
     for (int faceIndex : p_faceIndices)
     {
-        auto foundfaceIndex = std::find(faceIndicesToCheck.begin(), faceIndicesToCheck.end(), faceIndex);
-        if (faceIndicesToCheck.end() == foundfaceIndex)
+        auto foundfaceIndex = std::find(realFaceIndicesToCheck.begin(), realFaceIndicesToCheck.end(), faceIndex);
+        if (realFaceIndicesToCheck.end() == foundfaceIndex)
         {
            verticesToCheck.push_back(allVertices.at(faceIndex - 1));
-           faceIndicesToCheck.push_back(faceIndex);
+           tempFaceIndicesToCheck.push_back(verticesToCheck.size());
+           realFaceIndicesToCheck.push_back(faceIndex);
+           m_mapTempToRealFaceIndices.insert(std::make_pair(static_cast<int>(verticesToCheck.size()), faceIndex));
         }
     }
 
-    OrderVerticesWithMinXFirst(verticesToCheck, faceIndicesToCheck);
+    CalculateAverageYPixel(verticesToCheck);
+    OrderVerticesWithMinXFirst(verticesToCheck, tempFaceIndicesToCheck);
     FindFaces(p_mesh);
     AddFaces(p_mesh);
+}
+
+void FaceFinder::CalculateAverageYPixel(std::vector<ObjVertexCoords>& p_vertices)
+{
+    int sumY = 0;
+    for (ObjVertexCoords& vertex : p_vertices)
+    {
+        sumY += vertex.Y;
+    }
+    m_averageYPixel = sumY / p_vertices.size();
 }
 
 void FaceFinder::OrderVerticesWithMinXFirst(std::vector<ObjVertexCoords>& p_vertices, std::vector<int>& p_faceIndices)
@@ -88,7 +105,8 @@ bool FaceFinder::GetAboveBelowEdgeInfo(ObjVertexCoords& p_vertex1, ObjVertexCoor
 {
     bool aboveBelowEdgeInfo = Above;
 
-    if (p_vertex1.X <= p_vertex2.X)
+    int middleY = (p_vertex1.Y + p_vertex2.Y) / 2;
+    if(middleY < m_averageYPixel)
     {
         aboveBelowEdgeInfo = Below;
     }
@@ -135,6 +153,8 @@ void FaceFinder::FindFaces(Mesh* p_mesh)
                 }
             }
         }
+
+        HandleFaceWithTwoFaceIndices();
 
         if (m_orderedVerticesWithMinXFirst.size() > 3)
         {
@@ -285,10 +305,111 @@ bool FaceFinder::CheckIfFaceIndexHandledAsNotConsecutive(int p_faceIndex, int& p
 
 void FaceFinder::HandleFaceWithTotalTwoFaceIndices()
 {
-    std::vector<int> handledFaceIndices;
-    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
-    handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(1));
-    m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+    bool checkAddConsecutiveFaceIndices = CheckAlreadyHandledConsecutiveFaceIndices(m_orderedFaceIndicesWithMinXFirst.at(0), m_orderedFaceIndicesWithMinXFirst.at(1));
+    if (checkAddConsecutiveFaceIndices)
+    {
+        std::vector<int> handledFaceIndices;
+        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
+        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(1));
+        m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+    }
+}
+
+void FaceFinder::HandleFaceWithTwoFaceIndices()
+{
+    std::vector<int> vectorIndicesWithTwoFaceIndices;
+    std::vector<int> vectorIndicesWithMoreThanTwoFaceIndices;
+
+    if (m_handledConsecutiveFaceIndices.size() > 1)
+    {
+        for (int i = 0; i < m_handledConsecutiveFaceIndices.size(); i++)
+        {
+            if (2 == m_handledConsecutiveFaceIndices.at(i).size())
+            {
+                vectorIndicesWithTwoFaceIndices.push_back(i);
+            }
+            else if(m_handledConsecutiveFaceIndices.at(i).size() > 2)
+            {
+                vectorIndicesWithMoreThanTwoFaceIndices.push_back(i);
+            }
+        }
+
+        if (vectorIndicesWithTwoFaceIndices.size() > 0)
+        {
+            for (int i = 0; i < m_handledConsecutiveFaceIndices.size(); i++)
+            {
+                auto itFoundWithTwoFaceIndices = std::find(vectorIndicesWithTwoFaceIndices.begin(), vectorIndicesWithTwoFaceIndices.end(), i);
+                if (vectorIndicesWithTwoFaceIndices.end() != itFoundWithTwoFaceIndices)
+                {
+                    bool vertexValid1 = false;
+                    bool vertexValid2 = false;
+                    int faceIndex1 = 0;
+                    int faceIndex2 = 0;
+
+                    for (int j = 0; j < m_handledConsecutiveFaceIndices.size(); j++)
+                    {
+                        auto itFoundWithMoreThanTwoFaceIndices = std::find(vectorIndicesWithMoreThanTwoFaceIndices.begin(), vectorIndicesWithMoreThanTwoFaceIndices.end(), j);
+                        if (vectorIndicesWithMoreThanTwoFaceIndices.end() != itFoundWithMoreThanTwoFaceIndices)
+                        {
+                            int faceIndex1 = m_handledConsecutiveFaceIndices.at(*itFoundWithMoreThanTwoFaceIndices).at(0);
+                            int faceIndex2 = m_handledConsecutiveFaceIndices.at(*itFoundWithMoreThanTwoFaceIndices).at(1);
+                            ObjVertexCoords& vertex1 = m_orderedVerticesWithMinXFirst.at(faceIndex1 - 1);
+                            ObjVertexCoords& vertex2 = m_orderedVerticesWithMinXFirst.at(faceIndex2 - 1);
+                            float slope = (vertex2.Y - vertex1.Y) / (vertex2.X - vertex1.X);
+                            bool aboveBelowEdgeInfo = GetAboveBelowEdgeInfo(vertex1, vertex2);
+
+                            int faceIndex3 = m_handledConsecutiveFaceIndices.at(*itFoundWithTwoFaceIndices).at(0);
+                            int faceIndex4 = m_handledConsecutiveFaceIndices.at(*itFoundWithTwoFaceIndices).at(1);
+                            if (!vertexValid1)
+                            {
+                                if ((faceIndex3 != faceIndex1) && (faceIndex3 != faceIndex2))
+                                {
+                                    vertexValid1 = CheckNextVertex(faceIndex3 - 1, slope, aboveBelowEdgeInfo);
+                                }
+                                if (vertexValid1)
+                                {
+                                    bool checkAddConsecutiveFaceIndices = CheckAlreadyHandledConsecutiveFaceIndices(faceIndex1, faceIndex2, faceIndex3);
+                                    if (checkAddConsecutiveFaceIndices)
+                                    {
+                                        std::vector<int> handledFaceIndices;
+                                        handledFaceIndices.push_back(faceIndex1);
+                                        handledFaceIndices.push_back(faceIndex2);
+                                        handledFaceIndices.push_back(faceIndex3);
+                                        m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+                                    }
+                                }
+                            }
+
+                            if (!vertexValid2)
+                            {
+                                if ((faceIndex4 != faceIndex1) && (faceIndex4 != faceIndex2))
+                                {
+                                    vertexValid2 = CheckNextVertex(faceIndex4 - 1, slope, aboveBelowEdgeInfo);
+                                }
+                                if (vertexValid2)
+                                {
+                                    bool checkAddConsecutiveFaceIndices = CheckAlreadyHandledConsecutiveFaceIndices(faceIndex1, faceIndex2, faceIndex4);
+                                    if (checkAddConsecutiveFaceIndices)
+                                    {
+                                        std::vector<int> handledFaceIndices;
+                                        handledFaceIndices.push_back(faceIndex1);
+                                        handledFaceIndices.push_back(faceIndex2);
+                                        handledFaceIndices.push_back(faceIndex4);
+                                        m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+                                    }
+                                }
+                            }
+                            if (vertexValid1 || vertexValid2)
+                            {
+                                m_handledConsecutiveFaceIndices.erase(m_handledConsecutiveFaceIndices.begin() + i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void FaceFinder::HandleLastFace(int p_lastHandledFaceIndex)
@@ -316,17 +437,80 @@ void FaceFinder::HandleLastFace(int p_lastHandledFaceIndex)
     bool vertexValid = CheckNextVertex(0, slope, aboveBelowEdgeInfo);
     if (vertexValid)
     {
-        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexSecondLastIndex));
-        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
-        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
-        m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+        bool checkAddConsecutiveFaceIndices = CheckAlreadyHandledConsecutiveFaceIndices(vertexSecondLastIndex, vertexLastIndex, 0);
+        if (checkAddConsecutiveFaceIndices)
+        {
+            handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexSecondLastIndex));
+            handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
+            handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
+            m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+        }
     }
     else
     {
-        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
-        handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
-        m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+        bool checkAddConsecutiveFaceIndices = CheckAlreadyHandledConsecutiveFaceIndices(vertexLastIndex, 0);
+        if (checkAddConsecutiveFaceIndices)
+        {
+            handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(vertexLastIndex));
+            handledFaceIndices.push_back(m_orderedFaceIndicesWithMinXFirst.at(0));
+            m_handledConsecutiveFaceIndices.push_back(handledFaceIndices);
+        }
     }
+}
+
+bool FaceFinder::CheckAlreadyHandledConsecutiveFaceIndices(int p_faceIndex1, int p_faceIndex2)
+{
+    bool foundFaceIndex1 = false;
+    bool foundFaceIndex2 = false;
+
+    for (std::vector<int>& faceIndices : m_handledConsecutiveFaceIndices)
+    {
+        for (int faceIndex : faceIndices)
+        {
+            if (faceIndex == p_faceIndex1)
+            {
+                foundFaceIndex1 = true;
+            }
+            if (faceIndex == p_faceIndex2)
+            {
+                foundFaceIndex2 = true;
+            }
+        }
+    }
+
+    bool checkSuccessful = !(foundFaceIndex1 && foundFaceIndex2);
+
+    return checkSuccessful;
+}
+
+bool FaceFinder::CheckAlreadyHandledConsecutiveFaceIndices(int p_faceIndex1, int p_faceIndex2, int p_faceIndex3)
+{
+    bool foundFaceIndex1 = false;
+    bool foundFaceIndex2 = false;
+    bool foundFaceIndex3 = false;
+
+    for (std::vector<int>& faceIndices : m_handledConsecutiveFaceIndices)
+    {
+        for (int faceIndex : faceIndices)
+        {
+            if (faceIndex == p_faceIndex1)
+            {
+                foundFaceIndex1 = true;
+            }
+            if (faceIndex == p_faceIndex2)
+            {
+                foundFaceIndex2 = true;
+            }
+            if (faceIndex == p_faceIndex3)
+            {
+                foundFaceIndex3 = true;
+            }
+        }
+    }
+
+    bool checkSuccessful = !(foundFaceIndex1 && foundFaceIndex2 && foundFaceIndex3);
+
+    return checkSuccessful;
 }
 
 void FaceFinder::AddFaces(Mesh* p_mesh)
@@ -336,7 +520,7 @@ void FaceFinder::AddFaces(Mesh* p_mesh)
         p_mesh->AddFace(&m_dummyMaterial);
         for (int faceIndex : faceIndices)
         {
-            p_mesh->AddFaceIndices(faceIndex);
+            p_mesh->AddFaceIndices(m_mapTempToRealFaceIndices.at(faceIndex));
         }
     }
 
@@ -345,7 +529,7 @@ void FaceFinder::AddFaces(Mesh* p_mesh)
         p_mesh->AddFace(&m_dummyMaterial);
         for (int faceIndex : faceIndices)
         {
-            p_mesh->AddFaceIndices(faceIndex);
+            p_mesh->AddFaceIndices(m_mapTempToRealFaceIndices.at(faceIndex));
         }
     }
 }

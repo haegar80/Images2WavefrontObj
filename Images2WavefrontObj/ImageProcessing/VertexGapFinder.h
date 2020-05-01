@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FaceFinder.h"
 #include "../WavefrontObject/Mesh.h"
 #include <memory>
 #include <vector>
@@ -18,6 +19,7 @@ public:
 private:
     static constexpr int MaxiumNumberOfVerticesGapPixels = 20;
 
+    FaceFinder m_faceFinder;
     std::map<Mesh*, std::vector<ObjVertexCoords>> m_interestingVerticesForGapDetecting;
     std::multimap<Mesh*, Mesh*> m_meshesToMerge;
     std::vector<Mesh*> m_meshesToDelete;

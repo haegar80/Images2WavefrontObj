@@ -39,6 +39,14 @@ void VertexGapFinder::FindVertexGaps(std::vector<std::unique_ptr<Mesh>>& p_meshe
             p_meshes.erase(itDelete);
         }
     }
+
+    for (std::unique_ptr<Mesh>& mesh : p_meshes)
+    {
+        if (mesh)
+        {
+            m_faceFinder.AddFaces(mesh.get(), std::vector<int>());
+        }
+    }
 }
 
 void VertexGapFinder::FindVerticesForGapDetecting(Mesh* p_mesh)
