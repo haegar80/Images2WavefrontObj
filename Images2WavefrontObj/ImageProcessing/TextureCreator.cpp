@@ -371,58 +371,59 @@ void TextureCreator::CreateTextureImages()
     }
 }
 
-bool TextureCreator::FindTexturePixels(std::vector<FaceKey>& p_faceKeys, SEdgePixels& p_texturePixels)
+void TextureCreator::FindTexturePixels(std::vector<FaceKey>& p_faceKeys, SEdgePixels& p_texturePixels)
 {
-    bool foundTexturePixels = false;
-
-    int minNumberOfPixels = 0;
-    for (auto itFaceKey1 = p_faceKeys.begin(); p_faceKeys.end() != itFaceKey1; ++itFaceKey1)
+    if (1 == p_faceKeys.size())
     {
-        for (auto itFaceKey2 = std::next(itFaceKey1); p_faceKeys.end() != itFaceKey2; ++itFaceKey2)
+        FaceKey& faceKey = p_faceKeys.at(0);
+        auto itFoundTexturePixels = m_diagonalTexturePixels.find(faceKey);
+        p_texturePixels = (*itFoundTexturePixels).second;
+    }
+    else {
+        int minNumberOfPixels = 0;
+        for (auto itFaceKey1 = p_faceKeys.begin(); p_faceKeys.end() != itFaceKey1; ++itFaceKey1)
         {
-            auto itFoundTexturePixels1 = m_diagonalTexturePixels.find(*itFaceKey1);
-            auto itFoundTexturePixels2 = m_diagonalTexturePixels.find(*itFaceKey2);
-            if ((m_diagonalTexturePixels.end() != itFoundTexturePixels1) && (m_diagonalTexturePixels.end() != itFoundTexturePixels2))
+            for (auto itFaceKey2 = std::next(itFaceKey1); p_faceKeys.end() != itFaceKey2; ++itFaceKey2)
             {
-                int numberOfPixels1 = ((*itFoundTexturePixels1).second.endX - (*itFoundTexturePixels1).second.startX) * ((*itFoundTexturePixels1).second.endY - (*itFoundTexturePixels1).second.startY);
-                int numberOfPixels2 = ((*itFoundTexturePixels2).second.endX - (*itFoundTexturePixels2).second.startX) * ((*itFoundTexturePixels2).second.endY - (*itFoundTexturePixels2).second.startY);
-               
-                if ((0 == minNumberOfPixels) || (numberOfPixels1 < minNumberOfPixels))
+                auto itFoundTexturePixels1 = m_diagonalTexturePixels.find(*itFaceKey1);
+                auto itFoundTexturePixels2 = m_diagonalTexturePixels.find(*itFaceKey2);
+                if ((m_diagonalTexturePixels.end() != itFoundTexturePixels1) && (m_diagonalTexturePixels.end() != itFoundTexturePixels2))
                 {
-                    minNumberOfPixels = numberOfPixels1;
-                    p_texturePixels = (*itFoundTexturePixels1).second;
+                    int numberOfPixels1 = ((*itFoundTexturePixels1).second.endX - (*itFoundTexturePixels1).second.startX + 1) * ((*itFoundTexturePixels1).second.endY - (*itFoundTexturePixels1).second.startY + 1);
+                    int numberOfPixels2 = ((*itFoundTexturePixels2).second.endX - (*itFoundTexturePixels2).second.startX + 1) * ((*itFoundTexturePixels2).second.endY - (*itFoundTexturePixels2).second.startY + 1);
+
+                    if ((0 == minNumberOfPixels) || (numberOfPixels1 < minNumberOfPixels))
+                    {
+                        minNumberOfPixels = numberOfPixels1;
+                        p_texturePixels = (*itFoundTexturePixels1).second;
+                    }
+                    if (numberOfPixels2 < minNumberOfPixels)
+                    {
+                        minNumberOfPixels = numberOfPixels2;
+                        p_texturePixels = (*itFoundTexturePixels2).second;
+                    }
                 }
-                if ((0 == minNumberOfPixels) || (numberOfPixels2 < minNumberOfPixels))
+                else if (m_diagonalTexturePixels.end() != itFoundTexturePixels1)
                 {
-                    minNumberOfPixels = numberOfPixels2;
-                    p_texturePixels = (*itFoundTexturePixels2).second;
+                    int numberOfPixels1 = ((*itFoundTexturePixels1).second.endX - (*itFoundTexturePixels1).second.startX + 1) * ((*itFoundTexturePixels1).second.endY - (*itFoundTexturePixels1).second.startY + 1);
+                    if ((0 == minNumberOfPixels) || (numberOfPixels1 < minNumberOfPixels))
+                    {
+                        minNumberOfPixels = numberOfPixels1;
+                        p_texturePixels = (*itFoundTexturePixels1).second;
+                    }
                 }
-                foundTexturePixels = true;
-            }
-            else if (m_diagonalTexturePixels.end() != itFoundTexturePixels1)
-            {
-                int numberOfPixels1 = ((*itFoundTexturePixels1).second.endX - (*itFoundTexturePixels1).second.startX) * ((*itFoundTexturePixels1).second.endY - (*itFoundTexturePixels1).second.startY);
-                if ((0 == minNumberOfPixels) || (numberOfPixels1 < minNumberOfPixels))
+                else if (m_diagonalTexturePixels.end() != itFoundTexturePixels2)
                 {
-                    minNumberOfPixels = numberOfPixels1;
-                    p_texturePixels = (*itFoundTexturePixels1).second;
+                    int numberOfPixels2 = ((*itFoundTexturePixels2).second.endX - (*itFoundTexturePixels2).second.startX + 1) * ((*itFoundTexturePixels2).second.endY - (*itFoundTexturePixels2).second.startY + 1);
+                    if ((0 == minNumberOfPixels) || (numberOfPixels2 < minNumberOfPixels))
+                    {
+                        minNumberOfPixels = numberOfPixels2;
+                        p_texturePixels = (*itFoundTexturePixels2).second;
+                    }
                 }
-                foundTexturePixels = true;
-            }
-            else if (m_diagonalTexturePixels.end() != itFoundTexturePixels2)
-            {
-                int numberOfPixels2 = ((*itFoundTexturePixels2).second.endX - (*itFoundTexturePixels2).second.startX) * ((*itFoundTexturePixels2).second.endY - (*itFoundTexturePixels2).second.startY);
-                if ((0 == minNumberOfPixels) || (numberOfPixels2 < minNumberOfPixels))
-                {
-                    minNumberOfPixels = numberOfPixels2;
-                    p_texturePixels = (*itFoundTexturePixels2).second;
-                }
-                foundTexturePixels = true;
             }
         }
     }
-
-    return foundTexturePixels;
 }
 
 void TextureCreator::CreateTextureImages(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTexture)

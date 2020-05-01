@@ -45,7 +45,7 @@ private:
     void RemoveIdenticalColorFaceKey(const FaceKey& p_faceKey, int p_vectorIndex);
     bool FindIdenticalColorFaceKey(const FaceKey& p_faceKey, int& p_mainVectorIndexFaceKey);
     bool GetIdenticalColorFaceKeys(const FaceKey& p_faceKey, std::vector<FaceKey>& p_otherFaceKeys);
-    bool FindTexturePixels(std::vector<FaceKey>& p_faceKeys, SEdgePixels& p_texturePixels);
+    void FindTexturePixels(std::vector<FaceKey>& p_faceKeys, SEdgePixels& p_texturePixels);
     void CreateTextureImages();
     void CreateTextureImages(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTexture);
     void SaveTexture(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys);
