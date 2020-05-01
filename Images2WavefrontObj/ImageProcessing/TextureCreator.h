@@ -40,10 +40,12 @@ private:
     void SortStartEndPixels(SEdgePixels& p_edgePixels);
     void AnalyzeTexturePixels();
     bool CompareDiagonalTexturePixels(const SEdgePixels& p_diagonalTexturePixels1, const SEdgePixels& p_diagonalTexturePixels2);
+    void FindNumberOfTexturePixelsToCompare(const SEdgePixels& p_diagonalTexturePixels1, const SEdgePixels& p_diagonalTexturePixels2, int& p_numberOfPixelsX, int& p_numberOfPixelsY);
     void AddIdenticalColorFaceKeys(const FaceKey& p_faceKey1, const FaceKey& p_faceKey2);
     void RemoveIdenticalColorFaceKey(const FaceKey& p_faceKey, int p_vectorIndex);
     bool FindIdenticalColorFaceKey(const FaceKey& p_faceKey, int& p_mainVectorIndexFaceKey);
     bool GetIdenticalColorFaceKeys(const FaceKey& p_faceKey, std::vector<FaceKey>& p_otherFaceKeys);
+    bool FindTexturePixels(std::vector<FaceKey>& p_faceKeys, SEdgePixels& p_texturePixels);
     void CreateTextureImages();
     void CreateTextureImages(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTexture);
     void SaveTexture(const QImage& p_textureImage, std::vector<FaceKey>& p_faceKeys);

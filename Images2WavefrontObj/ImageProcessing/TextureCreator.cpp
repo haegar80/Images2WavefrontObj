@@ -193,28 +193,7 @@ bool TextureCreator::CompareDiagonalTexturePixels(const SEdgePixels& p_diagonalT
 
     int comparePixelX = 0;
     int comparePixelY = 0;
-    int numberOfPixelX1 = p_diagonalTexturePixels1.endX - p_diagonalTexturePixels1.startX + 1;
-    int numberOfPixelX2 = p_diagonalTexturePixels2.endX - p_diagonalTexturePixels2.startX + 1;
-    int numberOfPixelY1 = p_diagonalTexturePixels1.endY - p_diagonalTexturePixels1.startY + 1;
-    int numberOfPixelY2 = p_diagonalTexturePixels2.endY - p_diagonalTexturePixels2.startY + 1;
-
-    if (numberOfPixelX1 < numberOfPixelX2)
-    {
-        comparePixelX = numberOfPixelX1;
-    }
-    else
-    {
-        comparePixelX = numberOfPixelX2;
-    }
-
-    if (numberOfPixelY1 < numberOfPixelY2)
-    {
-        comparePixelY = numberOfPixelY1;
-    }
-    else
-    {
-        comparePixelY = numberOfPixelY2;
-    }
+    FindNumberOfTexturePixelsToCompare(p_diagonalTexturePixels1, p_diagonalTexturePixels2, comparePixelX, comparePixelY);
 
     identicalColors = true;
     for (int x = 0; x < comparePixelX; x++)
@@ -238,6 +217,32 @@ bool TextureCreator::CompareDiagonalTexturePixels(const SEdgePixels& p_diagonalT
     }
 
     return identicalColors;
+}
+
+void TextureCreator::FindNumberOfTexturePixelsToCompare(const SEdgePixels& p_diagonalTexturePixels1, const SEdgePixels& p_diagonalTexturePixels2, int& p_numberOfPixelsX, int& p_numberOfPixelsY)
+{
+    int numberOfPixelX1 = p_diagonalTexturePixels1.endX - p_diagonalTexturePixels1.startX + 1;
+    int numberOfPixelX2 = p_diagonalTexturePixels2.endX - p_diagonalTexturePixels2.startX + 1;
+    int numberOfPixelY1 = p_diagonalTexturePixels1.endY - p_diagonalTexturePixels1.startY + 1;
+    int numberOfPixelY2 = p_diagonalTexturePixels2.endY - p_diagonalTexturePixels2.startY + 1;
+
+    if (numberOfPixelX1 < numberOfPixelX2)
+    {
+        p_numberOfPixelsX = numberOfPixelX1;
+    }
+    else
+    {
+        p_numberOfPixelsX = numberOfPixelX2;
+    }
+
+    if (numberOfPixelY1 < numberOfPixelY2)
+    {
+        p_numberOfPixelsY = numberOfPixelY1;
+    }
+    else
+    {
+        p_numberOfPixelsY = numberOfPixelY2;
+    }
 }
 
 void TextureCreator::AddIdenticalColorFaceKeys(const FaceKey& p_faceKey1, const FaceKey& p_faceKey2)
@@ -356,12 +361,68 @@ void TextureCreator::CreateTextureImages()
                 auto itFoundTexturePixels = m_diagonalTexturePixels.find(localFaceKey);
                 if (m_diagonalTexturePixels.end() != itFoundTexturePixels)
                 {
-                    CreateTextureImages(allFaceKeys, (*itFoundTexturePixels).second);
+                    SEdgePixels texturePixels;
+                    FindTexturePixels(allFaceKeys, texturePixels);
+                    CreateTextureImages(allFaceKeys, texturePixels);
                     allFaceKeys.clear();
                 }
             }
         }
     }
+}
+
+bool TextureCreator::FindTexturePixels(std::vector<FaceKey>& p_faceKeys, SEdgePixels& p_texturePixels)
+{
+    bool foundTexturePixels = false;
+
+    int minNumberOfPixels = 0;
+    for (auto itFaceKey1 = p_faceKeys.begin(); p_faceKeys.end() != itFaceKey1; ++itFaceKey1)
+    {
+        for (auto itFaceKey2 = std::next(itFaceKey1); p_faceKeys.end() != itFaceKey2; ++itFaceKey2)
+        {
+            auto itFoundTexturePixels1 = m_diagonalTexturePixels.find(*itFaceKey1);
+            auto itFoundTexturePixels2 = m_diagonalTexturePixels.find(*itFaceKey2);
+            if ((m_diagonalTexturePixels.end() != itFoundTexturePixels1) && (m_diagonalTexturePixels.end() != itFoundTexturePixels2))
+            {
+                int numberOfPixels1 = ((*itFoundTexturePixels1).second.endX - (*itFoundTexturePixels1).second.startX) * ((*itFoundTexturePixels1).second.endY - (*itFoundTexturePixels1).second.startY);
+                int numberOfPixels2 = ((*itFoundTexturePixels2).second.endX - (*itFoundTexturePixels2).second.startX) * ((*itFoundTexturePixels2).second.endY - (*itFoundTexturePixels2).second.startY);
+               
+                if ((0 == minNumberOfPixels) || (numberOfPixels1 < minNumberOfPixels))
+                {
+                    minNumberOfPixels = numberOfPixels1;
+                    p_texturePixels = (*itFoundTexturePixels1).second;
+                }
+                if ((0 == minNumberOfPixels) || (numberOfPixels2 < minNumberOfPixels))
+                {
+                    minNumberOfPixels = numberOfPixels2;
+                    p_texturePixels = (*itFoundTexturePixels2).second;
+                }
+                foundTexturePixels = true;
+            }
+            else if (m_diagonalTexturePixels.end() != itFoundTexturePixels1)
+            {
+                int numberOfPixels1 = ((*itFoundTexturePixels1).second.endX - (*itFoundTexturePixels1).second.startX) * ((*itFoundTexturePixels1).second.endY - (*itFoundTexturePixels1).second.startY);
+                if ((0 == minNumberOfPixels) || (numberOfPixels1 < minNumberOfPixels))
+                {
+                    minNumberOfPixels = numberOfPixels1;
+                    p_texturePixels = (*itFoundTexturePixels1).second;
+                }
+                foundTexturePixels = true;
+            }
+            else if (m_diagonalTexturePixels.end() != itFoundTexturePixels2)
+            {
+                int numberOfPixels2 = ((*itFoundTexturePixels2).second.endX - (*itFoundTexturePixels2).second.startX) * ((*itFoundTexturePixels2).second.endY - (*itFoundTexturePixels2).second.startY);
+                if ((0 == minNumberOfPixels) || (numberOfPixels2 < minNumberOfPixels))
+                {
+                    minNumberOfPixels = numberOfPixels2;
+                    p_texturePixels = (*itFoundTexturePixels2).second;
+                }
+                foundTexturePixels = true;
+            }
+        }
+    }
+
+    return foundTexturePixels;
 }
 
 void TextureCreator::CreateTextureImages(std::vector<FaceKey>& p_faceKeys, SEdgePixels p_pixelsForTexture)
