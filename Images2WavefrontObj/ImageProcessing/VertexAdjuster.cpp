@@ -2,7 +2,7 @@
 #include "DepthCalculator.h"
 #include "../WavefrontObject/Mesh.h"
 
-void VertexAdjuster::NormVertices(std::vector<std::unique_ptr<Mesh>>& p_meshes, int p_originalImageWidth, int p_p_originalImageHeight)
+void VertexAdjuster::NormVertices(std::vector<std::unique_ptr<Mesh>>& p_meshes, int p_originalImageWidth, int p_originalImageHeight)
 {
     for (std::unique_ptr<Mesh>& mesh : p_meshes)
     {
@@ -13,7 +13,7 @@ void VertexAdjuster::NormVertices(std::vector<std::unique_ptr<Mesh>>& p_meshes, 
             {
                 ObjVertexCoords& vertex = vertices.at(i);
                 float normedX = vertex.X / p_originalImageWidth;
-                float normedY = vertex.Y / p_p_originalImageHeight;
+                float normedY = (p_originalImageHeight - vertex.Y) / p_originalImageHeight;
                 float normedZ = vertex.Z / (DepthCalculator::GetZPixelFarest() - DepthCalculator::GetZPixelNearest()) * -1.0f;
                 mesh->UpdateVertex(i, normedX, normedY, normedZ);
             }
