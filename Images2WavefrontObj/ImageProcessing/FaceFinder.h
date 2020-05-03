@@ -31,11 +31,9 @@ private:
     void OrderVerticesWithMinXFirst(std::vector<ObjVertexCoords>& p_vertices, std::vector<int>& p_faceIndices);
     bool GetAboveBelowEdgeInfo(ObjVertexCoords& p_vertex1, ObjVertexCoords& p_vertex2);
     void FindFaces(Mesh* p_mesh);
-    bool FindNextNotConsecutiveFaceIndex(int p_faceIndex1, int p_faceIndex2, float p_slope, bool p_aboveBelowEdgeInfo, int p_handledVectorIndex);
-    bool FindNextConsecutiveFaceIndex(int p_startIndex, float p_slope, bool p_aboveBelowEdgeInfo);
-    bool CheckNextVertex(int p_vertexIndex, float p_slope, bool p_aboveBelowEdgeInfo);
-    void HandleFindNextConsecutiveFaceIndexResult(bool p_nextFaceIndexFound, bool p_isConsecutive, int p_faceIndex1, int p_faceIndex2, int p_faceIndex3 = 0);
-    bool CheckIfFaceIndexHandledAsNotConsecutive(int p_faceIndex, int& p_handledVectorIndex);
+    bool FindNextConsecutiveFaceIndex(int p_faceIndex1, int p_faceIndex2, int p_startSearchIndex);
+    bool CheckNextVertex(int p_vertexIndex1, int p_vertexIndex2, int p_vertexIndex3);
+    void HandleFindNextConsecutiveFaceIndexResult(bool p_isConsecutive, int p_faceIndex1, int p_faceIndex2, int p_faceIndex3);
     void HandleFaceWithTotalTwoFaceIndices();
     void HandleFaceWithTwoFaceIndices();
     void HandleLastFace(int p_lastHandledFaceIndex);

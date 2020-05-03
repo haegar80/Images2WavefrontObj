@@ -59,7 +59,7 @@ void ReadableVertexWriter::WriteObjVertexCoords(std::ofstream& p_vertexFile, con
     for (ObjVertexCoords vertex : p_vertices)
     {
         int pixelX = static_cast<int>(vertex.X * p_origImageWidth);
-        int pixelY = static_cast<int>(vertex.Y * p_origImageHeight);
+        int pixelY = static_cast<int>(p_origImageHeight - (vertex.Y * p_origImageHeight));
         int pixelZ = static_cast<int>(vertex.Z * (DepthCalculator::GetZPixelFarest() - DepthCalculator::GetZPixelNearest()) * -1);
         p_vertexFile << "v " << pixelX << " " << pixelY << " " << pixelZ << "\n";
     }
