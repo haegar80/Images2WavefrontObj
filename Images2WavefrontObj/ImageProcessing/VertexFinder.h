@@ -47,7 +47,7 @@ private:
     SEdgePixels GetHighGradientEndY(const QImage& p_gradientImage, int p_nextX, int p_nextY);
     bool HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height);
     int GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY);
-    void AddVerticesAndFace(std::vector<SEdgePixels>& p_edgePixelsVector);
+    void AddVerticesAndFaces(std::vector<SEdgePixels>& p_edgePixelsVector);
     int AddVertices(Mesh* p_mesh, SEdgePixels p_edgePixels, bool p_isStartVertexNew, bool p_isEndVertexNew);
     bool IsVertexAlreadyAdded(int p_pixelX, int p_pixelY);
     std::vector<VertexFinder::EVertexAlreadyAddedResult> AreVerticesAlreadyAdded(Mesh* p_currentMesh, SEdgePixels p_facePixels);

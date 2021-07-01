@@ -107,8 +107,14 @@ void TextureCreator::FindFacePixelsForTextureImage(const FaceKey& p_faceKey, con
     SEdgePixels diagonalTexturePixels;
     diagonalTexturePixels.startX = averageX - static_cast<int>(distanceX / 4);
     diagonalTexturePixels.endX = averageX + static_cast<int>(distanceX / 4);
+    if (diagonalTexturePixels.endX >= m_originalImage.width()) {
+        diagonalTexturePixels.endX = m_originalImage.width() - 1;
+    }
     diagonalTexturePixels.startY = averageY - static_cast<int>(distanceY / 4);
     diagonalTexturePixels.endY = averageY + static_cast<int>(distanceY / 4);
+    if (diagonalTexturePixels.endY >= m_originalImage.height()) {
+        diagonalTexturePixels.endY = m_originalImage.height() - 1;
+    }
 
     SortStartEndPixels(diagonalTexturePixels);
     m_diagonalTexturePixels.insert(std::make_pair(p_faceKey, diagonalTexturePixels));

@@ -6,9 +6,11 @@ std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(
     m_minimumGradient = p_minimumGradient;
     m_addedEdges.clear();
 
-    for (int xIndex = ImageBorderPixels; xIndex < (p_gradientImage.width() - ImageBorderPixels); xIndex += 5)
+    constexpr int SearchGap = 5;
+
+    for (int xIndex = ImageBorderPixels; xIndex < (p_gradientImage.width() - SearchGap); xIndex += SearchGap)
     {
-        for (int yIndex = ImageBorderPixels; yIndex < (p_gradientImage.height() - ImageBorderPixels); yIndex += 5)
+        for (int yIndex = ImageBorderPixels; yIndex < (p_gradientImage.height() - SearchGap); yIndex += SearchGap)
         {
             int imagePixelGray = GetGrayPixel(p_gradientImage, xIndex, yIndex);
             if (imagePixelGray > m_minimumGradient)
@@ -35,7 +37,7 @@ void VertexFinder::ProcessEdge(const QImage& p_gradientImage, int p_startX, int 
     bool edgeFound = GetEdges(p_gradientImage, p_startX, p_startY, edgePixelsVector);
     if (edgeFound)
     {
-        AddVerticesAndFace(edgePixelsVector);
+        AddVerticesAndFaces(edgePixelsVector);
     }
 }
 
@@ -261,7 +263,7 @@ int VertexFinder::GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int 
     return imagePixelGray;
 }
 
-void VertexFinder::AddVerticesAndFace(std::vector<SEdgePixels>& p_edgePixelsVector)
+void VertexFinder::AddVerticesAndFaces(std::vector<SEdgePixels>& p_edgePixelsVector)
 {
     std::vector<int> faceIndices;
     std::unique_ptr<Mesh> currentMesh = std::make_unique<Mesh>();
@@ -432,6 +434,7 @@ std::vector<VertexFinder::EVertexAlreadyAddedResult> VertexFinder::AreVerticesAl
         edgePixelsToMerge.endX = m_lastFoundAlreadyAddedVertex.first;
         edgePixelsToMerge.endY = m_lastFoundAlreadyAddedVertex.second;
         MergeMeshesIfEdgeInDifferentMeshes(edgePixelsToMerge);
+        // Mesh for endX/endY is now deleted if endX/endY was different than startX/startY
         MergeOtherMeshWithCurrentMeshIfDifferent(p_currentMesh, edgePixelsToMerge.startX, edgePixelsToMerge.startY);
     }
     else if (isStartVertexAlreadyAdded)
