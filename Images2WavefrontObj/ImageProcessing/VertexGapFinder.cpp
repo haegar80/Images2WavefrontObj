@@ -2,6 +2,7 @@
 
 void VertexGapFinder::FindVertexGaps(std::vector<std::unique_ptr<Mesh>>& p_meshes)
 {
+    m_vertexGapFindingIncomplete = false;
     m_interestingVerticesForGapDetecting.clear();
     m_meshesToMerge.clear();
     m_meshesToDelete.clear();
@@ -114,12 +115,14 @@ void VertexGapFinder::AddVerticesForGapDetecting(Mesh* p_mesh, int p_minXIndex, 
 void VertexGapFinder::CheckAndAdjustVertexGap(Mesh* p_mesh1, Mesh* p_mesh2)
 {
     bool hasVertexGap = false;
+    bool adjustIncomplete = false;
+
     for (ObjVertexCoords vertex1 : m_interestingVerticesForGapDetecting.at(p_mesh1)) {
         for (ObjVertexCoords vertex2 : m_interestingVerticesForGapDetecting.at(p_mesh2)) {
             hasVertexGap = HasVertexGap(vertex1, vertex2);
             if (hasVertexGap)
             {
-                bool shouldDeleteMesh = true;
+                bool shouldIgnoreMerge = false;
                 Mesh* meshToMergeInto = p_mesh1;
                 Mesh* meshToDelete = p_mesh2;
 
@@ -136,14 +139,21 @@ void VertexGapFinder::CheckAndAdjustVertexGap(Mesh* p_mesh1, Mesh* p_mesh2)
                     }
 
                     meshToDelete = tmpMeshToDelete;
+
+                    if (meshToMergeInto == meshToDelete) {
+                        m_vertexGapFindingIncomplete = true;
+                        shouldIgnoreMerge = true;
+                    }
                 }
                 else if (IsAlreadyPlannedToDelete(meshToMergeInto))
                 {
                     meshToMergeInto = FindMeshToMergeInto(meshToMergeInto);
                 }
 
-                m_meshesToMerge.insert(std::make_pair(meshToMergeInto, meshToDelete));
-                m_meshesToDelete.push_back(meshToDelete);
+                if (!shouldIgnoreMerge) {
+                    m_meshesToMerge.insert(std::make_pair(meshToMergeInto, meshToDelete));
+                    m_meshesToDelete.push_back(meshToDelete);
+                }
 
                 break;
             }
@@ -193,6 +203,9 @@ Mesh* VertexGapFinder::FindMeshToMergeInto(Mesh* p_meshToDelete)
             if (!IsAlreadyPlannedToDelete(meshToMergeInto))
             {
                 shouldContinueLoop = false;
+            }
+            else {
+                p_meshToDelete = meshToMergeInto;
             }
         }
     } while (shouldContinueLoop);

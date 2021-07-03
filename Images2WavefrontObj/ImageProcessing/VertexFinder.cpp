@@ -6,7 +6,7 @@ std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(
     m_minimumGradient = p_minimumGradient;
     m_addedEdges.clear();
 
-    constexpr int SearchGap = 5;
+    constexpr int SearchGap = 3;
 
     for (int xIndex = ImageBorderPixels; xIndex < (p_gradientImage.width() - SearchGap); xIndex += SearchGap)
     {
@@ -87,7 +87,7 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
         startY = updatedEdgePixels.endY;
     } while ((numberOfEdgePixelsFoundX > 0) || (numberOfEdgePixelsFoundY > 0));
 
-    if ((numberOfEdgePixelsFoundTotalX > MinimumNumberOfPixels) || (numberOfEdgePixelsFoundTotalY > MinimumNumberOfPixels))
+    if ((numberOfEdgePixelsFoundTotalX + numberOfEdgePixelsFoundTotalY) > MinimumNumberOfPixels)
     {
         for (SEdgePixels edgePixels : edgePixelsVector)
         {

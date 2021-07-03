@@ -16,9 +16,14 @@ public:
 
     void FindVertexGaps(std::vector<std::unique_ptr<Mesh>>& p_meshes);
 
-private:
-    static constexpr int MaxiumNumberOfVerticesGapPixels = 20;
+    bool GetVertexGapFindingIncomplete() {
+        return m_vertexGapFindingIncomplete;
+    }
 
+private:
+    static constexpr int MaxiumNumberOfVerticesGapPixels = 30;
+
+    bool m_vertexGapFindingIncomplete{ false };
     FaceFinder m_faceFinder;
     std::map<Mesh*, std::vector<ObjVertexCoords>> m_interestingVerticesForGapDetecting;
     std::multimap<Mesh*, Mesh*> m_meshesToMerge;
