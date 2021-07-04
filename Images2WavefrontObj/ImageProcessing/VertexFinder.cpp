@@ -15,7 +15,9 @@ std::vector<std::unique_ptr<Mesh>>& VertexFinder::FindVerticesFromGradientImage(
             int imagePixelGray = GetGrayPixel(p_gradientImage, xIndex, yIndex);
             if (imagePixelGray > m_minimumGradient)
             {
-                ProcessEdge(p_gradientImage, xIndex, yIndex);
+                if (!IsVertexAlreadyAdded(xIndex, yIndex)) {
+                    ProcessEdge(p_gradientImage, xIndex, yIndex);
+                }
             }
         }
     }
@@ -62,12 +64,14 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
         numberOfEdgePixelsFoundTotalX += numberOfEdgePixelsFoundX;
         if (numberOfEdgePixelsFoundX >= MinimumNumberOfEdgePixels)
         {
-            SEdgePixels edgePixels;
-            edgePixels.startX = startX;
-            edgePixels.startY = startY;
-            edgePixels.endX = updatedEdgePixels.endX;
-            edgePixels.endY = updatedEdgePixels.endY;
-            edgePixelsVector.push_back(edgePixels);
+            if (!IsVertexAlreadyAdded(updatedEdgePixels.endX, updatedEdgePixels.endY)) {
+                SEdgePixels edgePixels;
+                edgePixels.startX = startX;
+                edgePixels.startY = startY;
+                edgePixels.endX = updatedEdgePixels.endX;
+                edgePixels.endY = updatedEdgePixels.endY;
+                edgePixelsVector.push_back(edgePixels);
+            }
         }
         startX = updatedEdgePixels.endX;
         startY = updatedEdgePixels.endY;
@@ -76,18 +80,20 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
         numberOfEdgePixelsFoundTotalY += numberOfEdgePixelsFoundY;
         if (numberOfEdgePixelsFoundY >= MinimumNumberOfEdgePixels)
         {
-            SEdgePixels edgePixels;
-            edgePixels.startX = startX;
-            edgePixels.startY = startY;
-            edgePixels.endX = updatedEdgePixels.endX;
-            edgePixels.endY = updatedEdgePixels.endY;
-            edgePixelsVector.push_back(edgePixels);
+            if (!IsVertexAlreadyAdded(updatedEdgePixels.endX, updatedEdgePixels.endY)) {
+                SEdgePixels edgePixels;
+                edgePixels.startX = startX;
+                edgePixels.startY = startY;
+                edgePixels.endX = updatedEdgePixels.endX;
+                edgePixels.endY = updatedEdgePixels.endY;
+                edgePixelsVector.push_back(edgePixels);
+            }
         }
         startX = updatedEdgePixels.endX;
         startY = updatedEdgePixels.endY;
     } while ((numberOfEdgePixelsFoundX > 0) || (numberOfEdgePixelsFoundY > 0));
 
-    if ((numberOfEdgePixelsFoundTotalX + numberOfEdgePixelsFoundTotalY) > MinimumNumberOfPixels)
+    if (((numberOfEdgePixelsFoundTotalX + numberOfEdgePixelsFoundTotalY) > MinimumNumberOfPixels) && edgePixelsVector.size() > 0)
     {
         for (SEdgePixels edgePixels : edgePixelsVector)
         {
