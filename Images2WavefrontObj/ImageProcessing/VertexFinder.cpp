@@ -61,9 +61,9 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
     {
         updatedEdgePixels = GetEdgeX(p_gradientImage, startX, startY);
         numberOfEdgePixelsFoundX = updatedEdgePixels.endX - startX;
-        numberOfEdgePixelsFoundTotalX += numberOfEdgePixelsFoundX;
         if (numberOfEdgePixelsFoundX >= MinimumNumberOfEdgePixels)
         {
+            numberOfEdgePixelsFoundTotalX += numberOfEdgePixelsFoundX;
             if (!IsVertexAlreadyAdded(updatedEdgePixels.endX, updatedEdgePixels.endY)) {
                 SEdgePixels edgePixels;
                 edgePixels.startX = startX;
@@ -72,14 +72,15 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
                 edgePixels.endY = updatedEdgePixels.endY;
                 edgePixelsVector.push_back(edgePixels);
             }
+            startX = updatedEdgePixels.endX;
+            startY = updatedEdgePixels.endY;
         }
-        startX = updatedEdgePixels.endX;
-        startY = updatedEdgePixels.endY;
+
         updatedEdgePixels = GetEdgeY(p_gradientImage, startX, startY);
         numberOfEdgePixelsFoundY = updatedEdgePixels.endY - startY;
-        numberOfEdgePixelsFoundTotalY += numberOfEdgePixelsFoundY;
         if (numberOfEdgePixelsFoundY >= MinimumNumberOfEdgePixels)
         {
+            numberOfEdgePixelsFoundTotalY += numberOfEdgePixelsFoundY;
             if (!IsVertexAlreadyAdded(updatedEdgePixels.endX, updatedEdgePixels.endY)) {
                 SEdgePixels edgePixels;
                 edgePixels.startX = startX;
@@ -88,10 +89,10 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
                 edgePixels.endY = updatedEdgePixels.endY;
                 edgePixelsVector.push_back(edgePixels);
             }
+            startX = updatedEdgePixels.endX;
+            startY = updatedEdgePixels.endY;
         }
-        startX = updatedEdgePixels.endX;
-        startY = updatedEdgePixels.endY;
-    } while ((numberOfEdgePixelsFoundX > 0) || (numberOfEdgePixelsFoundY > 0));
+    } while ((numberOfEdgePixelsFoundX >= MinimumNumberOfEdgePixels) || (numberOfEdgePixelsFoundY >= MinimumNumberOfEdgePixels));
 
     if (((numberOfEdgePixelsFoundTotalX + numberOfEdgePixelsFoundTotalY) > MinimumNumberOfPixels) && edgePixelsVector.size() > 0)
     {
@@ -107,7 +108,7 @@ bool VertexFinder::GetEdges(const QImage& p_gradientImage, int p_startX, int p_s
 
 SEdgePixels VertexFinder::GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY)
 {
-    SEdgePixels updatedEdgePixels = GetHighGradientEndX(p_gradientImage, p_startX, p_startX, p_startY);
+    SEdgePixels updatedEdgePixels = GetHighGradientEndX(p_gradientImage, p_startX, (p_startX + 1), p_startY);
     updatedEdgePixels.startX = p_startX;
     updatedEdgePixels.startY = p_startY;
 
@@ -116,7 +117,7 @@ SEdgePixels VertexFinder::GetEdgeX(const QImage& p_gradientImage, int p_startX, 
 
 SEdgePixels VertexFinder::GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY)
 {
-    SEdgePixels updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, p_startX, p_startY);
+    SEdgePixels updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, (p_startY + 1), p_startX);
     updatedEdgePixels.startX = p_startX;
     updatedEdgePixels.startY = p_startY;
 
@@ -130,6 +131,8 @@ SEdgePixels VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int
     updatedEdgePixels.endY = p_nextY;
 
     int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
+
+    // If next pixel is still a "high" gradient pixel we are looking further for neighbour high gradient pixels
     if (imagePixelGray >= m_minimumGradient)
     {
         bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
@@ -138,48 +141,45 @@ SEdgePixels VertexFinder::GetHighGradientEndX(const QImage& p_gradientImage, int
         {
             updatedEdgePixels = GetHighGradientEndX(p_gradientImage, p_startX, (p_nextX + 1), (p_nextY - 1));
 
-            if (p_nextX == updatedEdgePixels.endX)
+            if ((p_nextX + 1) == updatedEdgePixels.endX)
             {
                 updatedEdgePixels = GetHighGradientEndX(p_gradientImage, p_startX, (p_nextX + 1), p_nextY);
  
-                if (p_nextX == updatedEdgePixels.endX)
+                if ((p_nextX + 1) == updatedEdgePixels.endX)
                 {
                     updatedEdgePixels = GetHighGradientEndX(p_gradientImage, p_startX, (p_nextX + 1), (p_nextY + 1));
                 }
             }
         }
     }
-    else {
-        if (p_nextX > p_startX) {
-            updatedEdgePixels.endX--;
-        }
-    }
 
     return updatedEdgePixels;
 }
 
-SEdgePixels VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_startY, int p_nextX, int p_nextY)
+SEdgePixels VertexFinder::GetHighGradientEndY(const QImage& p_gradientImage, int p_startY, int p_nextY, int p_nextX)
 {
     SEdgePixels updatedEdgePixels;
     updatedEdgePixels.endX = p_nextX;
     updatedEdgePixels.endY = p_nextY;
 
     int imagePixelGray = GetGrayPixel(p_gradientImage, p_nextX, p_nextY);
+
+    // If next pixel is still a "high" gradient pixel we are looking further for neighbour high gradient pixels
     if (imagePixelGray >= m_minimumGradient)
     {
         bool hasPixelReachedOutOfBorder = HasPixelReachedOutOfBorder(p_nextX, p_nextY, p_gradientImage.width(), p_gradientImage.height());
 
         if (!hasPixelReachedOutOfBorder)
         {
-            updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, (p_nextX - 1), (p_nextY + 1));
+            updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, (p_nextY + 1), (p_nextX - 1));
 
-            if (p_nextY == updatedEdgePixels.endY)
+            if ((p_nextY + 1) == updatedEdgePixels.endY)
             {
-                updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, p_nextX, (p_nextY + 1));
+                updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, (p_nextY + 1), p_nextX);
 
-                if (p_nextY == updatedEdgePixels.endY)
+                if ((p_nextY + 1) == updatedEdgePixels.endY)
                 {
-                    updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, (p_nextX + 1), (p_nextY + 1));
+                    updatedEdgePixels = GetHighGradientEndY(p_gradientImage, p_startY, (p_nextY + 1), (p_nextX + 1));
                 }
             }
         }

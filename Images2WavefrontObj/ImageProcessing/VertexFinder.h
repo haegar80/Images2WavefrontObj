@@ -27,7 +27,7 @@ private:
 
     static constexpr int ImageBorderPixels = 2;
     static constexpr int MinimumNumberOfPixels = 10;
-    static constexpr int MinimumNumberOfEdgePixels = 1;
+    static constexpr int MinimumNumberOfEdgePixels = 2;
     static constexpr int NumberOfCheckingNeighbouredPixels = 10;
 
     FaceFinder m_faceFinder;
@@ -42,7 +42,7 @@ private:
     SEdgePixels GetEdgeX(const QImage& p_gradientImage, int p_startX, int p_startY);
     SEdgePixels GetEdgeY(const QImage& p_gradientImage, int p_startX, int p_startY);
     SEdgePixels GetHighGradientEndX(const QImage& p_gradientImage, int p_startX, int p_nextX, int p_nextY);
-    SEdgePixels GetHighGradientEndY(const QImage& p_gradientImage, int p_startY, int p_nextX, int p_nextY);
+    SEdgePixels GetHighGradientEndY(const QImage& p_gradientImage, int p_startY, int p_nextY, int p_nextX);
     bool HasPixelReachedOutOfBorder(int p_nextX, int p_nextY, int p_width, int p_height);
     int GetGrayPixel(const QImage& p_gradientImage, int p_pixelX, int p_pixelY);
     void AddVerticesAndFaces(std::vector<SEdgePixels>& p_edgePixelsVector);
